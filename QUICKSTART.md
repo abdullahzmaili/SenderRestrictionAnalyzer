@@ -1,6 +1,6 @@
 # Quick Start
 
-Get from zero to a report in about five minutes.
+Get from zero to a report in a few minutes.
 
 ## 1. Install the required module
 
