@@ -6,7 +6,7 @@ Complete usage, permissions, and troubleshooting guide for `SenderRestrictionAna
 
 ## 1. Overview
 
-Sender Restriction Analyzer diagnoses **outbound mail sending-limit blocks** in Exchange Online (Recipient Rate Limit / RRL restrictions). It is an interactive, **read-only** troubleshooting tool for support engineers and administrators.
+Sender Restriction Analyzer diagnoses **outbound mail sending-limit** in Exchange Online (Recipient Rate Limit / RRL restrictions). It is an interactive, **read-only** troubleshooting tool for administrators.
 
 It runs in two phases:
 
@@ -149,7 +149,7 @@ All files are written to `-OutputPath`, prefixed with the sanitized UPN and a ru
 | `RRL_<user>_<timestamp>_SuspiciousInboxRules.csv` | Inbox rules flagged as security signals. |
 | `RRL_<user>_<timestamp>_State.clixml` | Full-fidelity object snapshot used by Phase 2 and for offline re-analysis. |
 
-> 🔒 **Confidential output:** These files contain UPNs, recipient addresses, message subjects, Message IDs, and security posture. Treat as confidential; review before sharing and do not email unencrypted.
+> 🔒 **Confidential output:** These files contain UPNs, recipient addresses, message subjects, Message IDs, and security posture. Treat as confidential; review before sharing and do not share unencrypted.
 
 ### About `State.clixml`
 
@@ -205,7 +205,7 @@ Add `-Verbose` to any run for detailed step logging and a per-step timing summar
 - **Read-only:** uses only `Get-*` / `Search-*` cmdlets — it never unblocks senders, changes policy, deletes rules, or submits messages. Remediation is guidance text only.
 - Run with a least-privilege account (Security Reader + View-Only Recipients), not Global Admin.
 - Dynamic values are HTML-escaped at render time to reduce XSS risk in the generated report; still review reports before sharing.
-- All output (HTML/CSV/state) is **confidential** — it contains tenant configuration, UPNs, recipient addresses, message metadata, and security posture.
+- All output (HTML/CSV/state) is **confidential** — it contains tenant configuration, UPNs, recipient addresses, message metadata, and security insights.
 
 ---
 
