@@ -158,7 +158,6 @@ param(
 )
 
 #Requires -Version 5.1
-#Requires -Modules ExchangeOnlineManagement
 
 #region Configuration
 
