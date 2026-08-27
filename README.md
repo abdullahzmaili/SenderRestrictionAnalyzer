@@ -1,6 +1,6 @@
 # Sender Restriction Analyzer
 
-A read-only PowerShell diagnostic tool that investigates **outbound mail sending-limit** (Recipient Rate Limit / RRL restrictions) in Exchange Online. It collects evidence from Exchange Online, Security & Compliance, and (optionally) Microsoft Graph, applies a deterministic verdict engine to classify the restriction, and produces a self-contained interactive HTML report.
+A read-only PowerShell diagnostic tool that investigates **outbound mail sending-limit** (Recipient Rate Limit / RRL restrictions) in Exchange Online. It collects evidence from Exchange Online, Security & Compliance, and (optionally) Microsoft Graph, applies a deterministic verdict engine to classify the restriction, and generates an interactive HTML report.
 
 - **Script:** `SenderRestrictionAnalyzer.ps1`
 - **Author:** Abdullah Zmaili
@@ -44,7 +44,7 @@ flowchart LR
 The tool runs in **two phases**:
 
 1. **Phase 1 (online):** Connects to Microsoft 365, collects all evidence into memory, and exports it to per-dataset CSV files plus a full-fidelity `State.clixml` snapshot. All cloud connections are then closed.
-2. **Phase 2 (offline):** Re-reads the exported state, runs the verdict engine, and builds the HTML report — with **no further remote calls**.
+2. **Phase 2 (offline):** Re-reads the exported state, runs the verdict engine, and generates the HTML report — with **no further remote calls**.
 
 ---
 
@@ -117,7 +117,7 @@ All files are written to `-OutputPath` and prefixed with the affected UPN and a 
 | `RRL_<user>_<timestamp>_SuspiciousInboxRules.csv` | Inbox rules flagged as security signals. |
 | `RRL_<user>_<timestamp>_State.clixml` | Full-fidelity object snapshot used by Phase 2 (and for offline re-analysis). |
 
-> 🔒 **Confidential:** Output contains UPNs, recipient addresses, message metadata, and security posture. Treat as confidential and do not email unencrypted.
+> 🔒 **Confidential:** Output contains UPNs, recipient addresses, message metadata, and security posture. Treat as confidential and do not share unencrypted.
 
 ---
 
