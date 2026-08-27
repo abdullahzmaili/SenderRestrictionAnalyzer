@@ -1,6 +1,6 @@
 # Sender Restriction Analyzer
 
-A read-only PowerShell diagnostic tool that investigates **outbound mail sending-limit blocks** (Restricted Recipient List / RRL restrictions) in Exchange Online. It collects evidence from Exchange Online, Security & Compliance, and (optionally) Microsoft Graph, applies a deterministic verdict engine to classify the restriction, and produces a self-contained interactive HTML report.
+A read-only PowerShell diagnostic tool that investigates **outbound mail sending-limit** (Recipient Rate Limit / RRL restrictions) in Exchange Online. It collects evidence from Exchange Online, Security & Compliance, and (optionally) Microsoft Graph, applies a deterministic verdict engine to classify the restriction, and produces a self-contained interactive HTML report.
 
 - **Script:** `SenderRestrictionAnalyzer.ps1`
 - **Author:** Abdullah Zmaili

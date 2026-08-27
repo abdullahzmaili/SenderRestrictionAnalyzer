@@ -6,7 +6,7 @@ Complete usage, permissions, and troubleshooting guide for `SenderRestrictionAna
 
 ## 1. Overview
 
-Sender Restriction Analyzer diagnoses **outbound mail sending-limit blocks** in Exchange Online (Restricted Recipient List / RRL restrictions). It is an interactive, **read-only** troubleshooting tool for support engineers and administrators.
+Sender Restriction Analyzer diagnoses **outbound mail sending-limit blocks** in Exchange Online (Recipient Rate Limit / RRL restrictions). It is an interactive, **read-only** troubleshooting tool for support engineers and administrators.
 
 It runs in two phases:
 
