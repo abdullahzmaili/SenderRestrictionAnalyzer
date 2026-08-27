@@ -1,0 +1,1149 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sender Restriction Analysis Report</title>
+    <style>
+    :root{
+        --primary:#3e97ff;--primary-2:#7239ea;
+        --grad-a:#667eea;--grad-b:#764ba2;
+        --success:#2ecc71;--success-2:#16a34a;
+        --warning:#f39c12;--warning-2:#e67e22;
+        --danger:#e74c3c;--danger-2:#c0392b;
+        --info:#64748b;
+        --bg:#f5f7fa;--bg-2:#c3cfe2;
+        --surface:#ffffff;--text:#1e293b;--text-muted:#64748b;--border:#e2e8f0;
+        --shadow:0 2px 4px rgba(0,0,0,.08);--shadow-lg:0 4px 20px rgba(0,0,0,.1);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(135deg,var(--bg) 0%,var(--bg-2) 100%);min-height:100vh;color:var(--text);padding-left:265px;line-height:1.5;}
+    @media(max-width:992px){body{padding-left:0;}}
+    .confidential-banner{background:linear-gradient(135deg,var(--danger) 0%,var(--danger-2) 100%);color:#fff;text-align:center;padding:10px 12px;font-weight:600;font-size:13px;letter-spacing:.3px;}
+    /* Sidebar (Metronic-style light sidebar) */
+    .sidebar{position:fixed;left:0;top:0;width:265px;height:100vh;background:#fff;color:#4b5675;z-index:1000;overflow-y:auto;overflow-x:hidden;transition:all .3s ease;box-shadow:0 0 28px 0 rgba(82,63,105,.05);border-right:1px solid #f1f1f4;display:flex;flex-direction:column;}
+    .sidebar::-webkit-scrollbar{width:4px;}.sidebar::-webkit-scrollbar-thumb{background:#e1e3ea;border-radius:4px;}
+    .sidebar-header{padding:16px 22px;display:flex;align-items:center;justify-content:space-between;height:70px;flex-shrink:0;border-bottom:1px solid #f1f1f4;}
+    .sidebar-logo{display:flex;align-items:center;gap:10px;}
+    .sidebar-logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--primary) 0%,var(--primary-2) 100%);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;}
+    .sidebar-logo-text{font-size:16px;font-weight:700;color:#071437;letter-spacing:-.3px;}
+    .sidebar-close{display:none;background:none;border:none;color:#99a1b7;font-size:22px;cursor:pointer;width:28px;height:28px;border-radius:6px;line-height:1;}
+    .sidebar-close:hover{background:#f1f1f4;color:#071437;}
+    .sidebar-section-title{padding:16px 22px 8px;font-size:11px;font-weight:600;color:#99a1b7;text-transform:uppercase;letter-spacing:.5px;}
+    .sidebar-nav{padding:4px 0;flex:1;}
+    .sidebar-item{display:flex;align-items:center;gap:10px;padding:9px 22px;margin:1px 12px;color:#4b5675;text-decoration:none;transition:all .15s ease;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;position:relative;border:none;background:transparent;width:calc(100% - 24px);text-align:left;}
+    .sidebar-item:hover{background:#f9f9f9;color:var(--primary);}
+    .sidebar-item.active{background:#eef6ff;color:var(--primary);font-weight:600;}
+    .sidebar-item.active::before{content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:3px;height:22px;background:var(--primary);border-radius:0 3px 3px 0;}
+    .sidebar-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
+    .sidebar-count{margin-left:auto;background:#eef2ff;color:var(--primary);border-radius:9px;padding:1px 8px;font-size:11px;font-weight:700;}
+    .sidebar-item.active .sidebar-count{background:var(--primary);color:#fff;}
+    .sidebar-footer{padding:16px;border-top:1px solid #f1f1f4;flex-shrink:0;}
+    .sidebar-footer-card{background:linear-gradient(135deg,#f9f9f9 0%,#f1f1f4 100%);border-radius:10px;padding:14px;text-align:center;}
+    .sidebar-footer-title{font-size:12px;font-weight:600;color:#071437;margin-bottom:4px;}
+    .sidebar-footer-text{font-size:11px;color:#99a1b7;line-height:1.4;}
+    .sidebar-toggle{position:fixed;left:16px;top:54px;z-index:999;background:#fff;color:#4b5675;border:1px solid #f1f1f4;width:40px;height:40px;border-radius:8px;font-size:18px;cursor:pointer;box-shadow:0 3px 12px rgba(82,63,105,.12);display:none;align-items:center;justify-content:center;}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:999;}
+    @media(max-width:992px){.sidebar{transform:translateX(-100%);}.sidebar.open{transform:translateX(0);box-shadow:0 10px 30px rgba(0,0,0,.15);}.sidebar-toggle{display:flex;}.sidebar-close{display:flex;align-items:center;justify-content:center;}.sidebar-overlay.show{display:block;}}
+    /* Layout */
+    .dashboard{max-width:1280px;margin:0 auto;padding:24px;}
+    .header{background:#fff;border-radius:16px;padding:22px 26px;margin-bottom:20px;box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
+    .header h1{font-size:23px;color:#2c3e50;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
+    .header .meta{color:var(--text-muted);font-size:13px;line-height:1.7;}
+    .btn{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:var(--shadow);transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+    .btn:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px);}
+    .btn-primary{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-2) 100%);color:#fff;border:none;}
+    .btn-primary:hover{color:#fff;opacity:.94;}
+    /* KPI stat cards */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:22px;}
+    .stat-card{background:#fff;border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;min-height:118px;display:flex;flex-direction:column;--accent:var(--primary);}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent);}
+    .stat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+    .stat-card.success{--accent:var(--success);}.stat-card.warning{--accent:var(--warning);}.stat-card.danger{--accent:var(--danger);}
+    .stat-icon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px;background:#eef2f7;color:var(--accent);}
+    .stat-label{font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+    .stat-value{font-size:28px;font-weight:700;color:#2c3e50;line-height:1;}
+    .stat-meta{font-size:12px;color:var(--text-muted);margin-top:8px;}
+    /* Panels / sections */
+    .panel{display:block;scroll-margin-top:16px;}
+    .panel + .panel{margin-top:2px;}
+    .section{background:#fff;border-radius:12px;margin-bottom:18px;box-shadow:var(--shadow);overflow:hidden;padding:0 22px 20px;}
+    .section>h2{margin:0 -22px 16px;padding:16px 22px;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--grad-a) 0%,var(--grad-b) 100%);display:flex;align-items:center;gap:10px;}
+    .section h3{margin:16px 0 8px;font-size:14px;color:#2c3e50;}
+    .kv{margin:6px 0;font-size:14px;display:flex;align-items:flex-start;gap:8px;}
+    .kv strong{flex-shrink:0;min-width:190px;color:var(--text-muted);font-weight:600;word-break:break-word;}
+    ul.list{margin:6px 0;padding-left:20px;}ul.list li{margin:4px 0;font-size:14px;}
+    .score-wrap{display:flex;gap:20px;flex-wrap:wrap;}
+    .score-box{flex:1;min-width:220px;}
+    .bar-track{background:#eef0f4;border-radius:6px;height:12px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:6px;}
+    /* Tables */
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+    thead th{position:sticky;top:0;background:linear-gradient(135deg,var(--grad-a) 0%,var(--grad-b) 100%);color:#fff;cursor:pointer;user-select:none;white-space:nowrap;font-weight:600;}
+    th.sortable::after{content:' \2195';opacity:.75;font-size:11px;}
+    th.sort-asc::after{content:' \2191';}
+    th.sort-desc::after{content:' \2193';}
+    tbody tr:hover{background:rgba(62,151,255,.06);}
+    .badge{display:inline-block;border-radius:12px;padding:2px 10px;font-size:11px;font-weight:600;color:#fff;}
+    .badge-ext{background:var(--warning);}.badge-int{background:var(--info);}
+    .badge-Delivered{background:var(--success);}.badge-Failed{background:var(--danger);}.badge-FilteredAsSpam{background:var(--warning);}
+    .badge-Quarantined{background:var(--primary-2);}
+    .badge-High{background:var(--danger);}.badge-Medium{background:var(--warning);}.badge-Low{background:var(--info);}
+    .table-controls{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+    .search-input{padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);min-width:240px;font-size:13px;}
+    .table-scroll{overflow-x:auto;max-height:560px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;}
+    .pager{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px;flex-wrap:wrap;}
+    /* Chart */
+    .chart{margin-top:8px;}
+    .chart-row{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:12px;}
+    .chart-label{width:96px;color:var(--text-muted);flex-shrink:0;}
+    .chart-bar-wrap{flex:1;background:#eef0f4;border-radius:6px;position:relative;height:22px;}
+    .chart-bar{height:100%;border-radius:6px;background:linear-gradient(135deg,var(--primary) 0%,var(--primary-2) 100%);}
+    .chart-bar.over{background:linear-gradient(135deg,var(--danger) 0%,var(--danger-2) 100%);}
+    .chart-val{width:60px;text-align:right;flex-shrink:0;font-weight:600;}
+    .limit-line{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--danger);}
+    .muted{color:var(--text-muted);}
+    .empty{padding:24px;text-align:center;color:var(--text-muted);font-style:italic;}
+    .guidance{background:#eef6ff;border-left:3px solid var(--primary);padding:12px 16px;border-radius:8px;font-size:13px;margin-top:12px;color:#334155;}
+    .recommendation-options{display:grid;gap:12px;margin:16px 0;}
+    .recommendation-option{border:1px solid var(--border);border-radius:8px;background:#fff;overflow:hidden;}
+    .recommendation-option summary{display:flex;align-items:center;gap:12px;padding:16px;cursor:pointer;list-style:none;background:#f8fafc;color:#1e293b;font-size:14px;font-weight:700;user-select:none;}
+    .recommendation-option summary::-webkit-details-marker{display:none;}
+    .recommendation-option summary:hover{background:#eef6ff;}
+    .recommendation-option summary:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;}
+    .recommendation-option summary::after{content:'\002B';margin-left:auto;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--primary);font-size:18px;font-weight:600;line-height:1;flex-shrink:0;}
+    .recommendation-option[open] summary{border-bottom:1px solid var(--border);background:#eef6ff;}
+    .recommendation-option[open] summary::after{content:'\2212';}
+    .recommendation-number{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:var(--primary);color:#fff;font-size:13px;flex-shrink:0;}
+    .recommendation-content{padding:4px 16px 16px;}
+    /* Message groups (grouped message trace) */
+    .mv-card{border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden;background:#fff;}
+    .mv-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 16px;cursor:pointer;background:#f8fafc;transition:background .15s ease;flex-wrap:wrap;}
+    .mv-header:hover{background:#eef6ff;}
+    .mv-header-main{min-width:220px;flex:1;}
+    .mv-subject{font-weight:600;font-size:14px;color:#1e293b;word-break:break-word;}
+    .mv-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+    .mv-header-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+    .mv-date{font-size:11px;color:var(--text-muted);width:100%;text-align:right;margin-top:2px;}
+    .mv-body{display:none;padding:12px 16px;border-top:1px solid var(--border);background:#fff;}
+    .mv-body.show{display:block;}
+    .mv-ids{margin-bottom:10px;padding:10px 12px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;}
+    .mv-ids .kv strong{min-width:140px;}
+    .mt-row{cursor:pointer;}
+    .mt-caret{color:var(--text-muted);font-size:11px;}
+    .mt-detail-content{display:none;padding:14px 16px;background:#f8fafc;}
+    .mt-detail-content.show{display:block;}
+    /* Event flow timeline */
+    .ef-wrap{padding:2px 2px;}
+    .ef-title{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:#1e293b;margin-bottom:12px;}
+    .ef-flow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+    .ef-pill{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;padding:4px 10px;border-radius:6px;}
+    .ef-arrow{color:#cbd5e1;font-size:12px;}
+    .ef-timeline{position:relative;padding-left:6px;}
+    .ef-timeline::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:#e2e8f0;}
+    .ef-item{position:relative;padding:0 0 16px 22px;}
+    .ef-item:last-child{padding-bottom:2px;}
+    .ef-dot{position:absolute;left:0;top:3px;width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #e2e8f0;}
+    .ef-event{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
+    .ef-detail{font-size:13px;color:#334155;font-weight:500;word-break:break-word;}
+    .ef-date{font-size:11px;color:#94a3b8;margin-top:2px;}
+    /* Mailbox Security Insights overview (donut) + cards */
+    .si-overview{display:flex;align-items:center;gap:26px;flex-wrap:wrap;background:linear-gradient(135deg,#ffffff 0%,#fbfcfe 100%);border:1px solid #eef2f7;border-radius:14px;padding:20px 24px;margin-bottom:18px;}
+    .si-overview svg{flex-shrink:0;}
+    .si-overview-text{min-width:220px;flex:1;}
+    .si-title{font-size:16px;font-weight:700;color:#2c3e50;margin-bottom:4px;}
+    .si-sub{font-size:13px;color:var(--text-muted);margin-bottom:12px;line-height:1.5;}
+    .si-badges{display:flex;gap:8px;flex-wrap:wrap;}
+    .count-badge{padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;border:2px solid #cbd5e1;color:#334155;}
+    .count-badge.passed{border-color:#27ae60;color:#1a7a43;}
+    .count-badge.failed{border-color:#e74c3c;color:#b53225;}
+    .count-badge.total{border-color:#3e97ff;color:#2b6fc2;}
+    .ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+    .ind-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;}
+    .ind-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
+    .ind-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;}
+    .ind-name{font-size:14px;font-weight:600;color:#2c3e50;}
+    .ind-badge{color:#fff;padding:3px 12px;border-radius:12px;font-size:12px;font-weight:700;flex-shrink:0;}
+    .ind-condition{font-size:12px;color:#94a3b8;margin-bottom:10px;line-height:1.5;}
+    .ind-progress{height:8px;background:#ecf0f1;border-radius:4px;overflow:hidden;margin-bottom:8px;}
+    .ind-bar{height:100%;border-radius:4px;width:100%;}
+    .ind-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-top:8px;}
+    .ind-detail{font-size:12px;color:#475569;line-height:1.5;}
+    .ind-card.clickable{cursor:pointer;}
+    .ind-click{text-align:center;margin-top:10px;font-size:12px;color:#7f8c8d;font-weight:500;}
+    /* Footer */
+    footer.report-footer{background:linear-gradient(135deg,#2c3e50 0%,#34495e 100%);color:#fff;padding:22px;text-align:center;margin-top:30px;border-radius:16px;border-top:4px solid var(--primary);}
+    footer.report-footer .f-title{font-size:15px;font-weight:600;margin-bottom:6px;}
+    footer.report-footer .f-sub{font-size:12px;color:#bdc3c7;}
+    @media print{.sidebar,.sidebar-toggle,.btn,.table-controls,.pager{display:none !important;}body{padding-left:0;background:#fff;}.panel{display:block !important;}.table-scroll{max-height:none;overflow:visible;}}
+    /* Alert details modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:1000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;}
+    .modal-box{background:#fff;border-radius:14px;max-width:820px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden;}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px;background:linear-gradient(135deg,#2c3e50 0%,#34495e 100%);color:#fff;}
+    .modal-head h3{margin:0;font-size:16px;font-weight:600;word-break:break-word;}
+    .modal-close{background:transparent;border:none;color:#fff;font-size:26px;line-height:1;cursor:pointer;padding:0 4px;}
+    .modal-close:hover{color:#e74c3c;}
+    .modal-body{padding:20px 22px;max-height:70vh;overflow-y:auto;}
+    .modal-detail-table th{border-bottom:1px solid var(--border);}
+    .modal-detail-table td{border-bottom:1px solid var(--border);}
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation">&#9776;</button>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <aside class="sidebar" id="rrlSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">SRA</div>
+                <div class="sidebar-logo-text">Sender Restriction Analyzer</div>
+            </div>
+            <button class="sidebar-close" onclick="toggleSidebar()" aria-label="Close">&times;</button>
+        </div>
+        <div class="sidebar-section-title">Analysis</div>
+        <nav class="sidebar-nav" id="sidebarNav"></nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-footer-card">
+                <div class="sidebar-footer-title">&#128274; Confidential</div>
+                <div class="sidebar-footer-text">The report contains UPNs, recipient addresses, message metadata, and security insights. Do not distribute unencrypted</div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="confidential-banner">CONFIDENTIAL &mdash; Contains UPNs, recipient addresses, message metadata, and security insights. Do not distribute unencrypted.</div>
+    <div class="dashboard">
+        <div class="header">
+            <div>
+                <h1><span>&#128231;</span> Sender Restriction Analyzer Report</h1>
+                <div class="meta" id="headerMeta"></div>
+            </div>
+            <div>
+                <button class="btn btn-primary" id="copyVerdictSummary" type="button">&#128203; Copy Verdict Summary</button>
+            </div>
+        </div>
+
+        <div class="stats-grid" id="kpiGrid"></div>
+
+        <div id="panels">
+            <div class="panel" id="panel-verdict" role="tabpanel"></div>
+            <div class="panel" id="panel-restricted" role="tabpanel"></div>
+            <div class="panel" id="panel-policy" role="tabpanel"></div>
+            <div class="panel" id="panel-trace" role="tabpanel"></div>
+            <div class="panel" id="panel-alerts" role="tabpanel"></div>
+            <div class="panel" id="panel-sendas" role="tabpanel"></div>
+            <div class="panel" id="panel-indicators" role="tabpanel"></div>
+            <div class="panel" id="panel-recommendations" role="tabpanel"></div>
+        </div>
+
+        <footer id="footer" class="report-footer"></footer>
+    </div>
+
+    <script>
+        var reportData = {"alerts":{"list":[{"creationDate":"2026-07-29 07:52:25","alertName":"Email sending limit exceeded","severity":"medium","category":"InitialAccess","status":"new","alertId":"fac473289b-e085-a3ff-4400-08deed45fdd0","description":"User has exceeded their email sending limit and the action defined within the Outbound Spam policy has been applied. -V1.0.0.0","userPrincipalName":"admin@contoso.com","userDisplayName":"Contoso Administrator","userAccountEnabled":"","deviceName":"","ipAddress":"","alertWebUrl":"https://security.microsoft.com/alerts/fac473289b-e085-a3ff-4400-08deed45fdd0?tid=XXX","classification":"","determination":"","detectionSource":"microsoftDefenderForOffice365","serviceSource":"microsoftDefenderForOffice365","providerAlertId":"c473289b-e085-a3ff-4400-08deed45fdd0","threatFamilyName":"","threatDisplayName":"","actorDisplayName":"","assignedTo":"","incidentId":"2","incidentWebUrl":"https://security.microsoft.com/incident2/2/overview?tid=XXX","firstActivity":"2026-07-29 07:49:00","lastActivity":"2026-07-29 07:50:00","lastUpdate":"2026-07-29 07:52:25","resolvedDateTime":"","mitreTechniques":"","evidenceCount":2,"evidenceSummary":"mailboxEvidence, userEvidence","recommendedActions":"","comments":"","tenantId":"XXX"},{"creationDate":"2026-08-26 12:59:13","alertName":"Email sending limit exceeded","severity":"medium","category":"InitialAccess","status":"new","alertId":"fac473289b-e085-a3ff-f000-08df037160ca","description":"User has exceeded their email sending limit and the action defined within the Outbound Spam policy has been applied. -V1.0.0.0","userPrincipalName":"admin@contoso.com","userDisplayName":"Contoso Administrator","userAccountEnabled":"","deviceName":"","ipAddress":"","alertWebUrl":"https://security.microsoft.com/alerts/fac473289b-e085-a3ff-f000-08df037160ca?tid=XXX","classification":"","determination":"","detectionSource":"microsoftDefenderForOffice365","serviceSource":"microsoftDefenderForOffice365","providerAlertId":"c473289b-e085-a3ff-f000-08df037160ca","threatFamilyName":"","threatDisplayName":"","actorDisplayName":"","assignedTo":"","incidentId":"3","incidentWebUrl":"https://security.microsoft.com/incident2/3/overview?tid=XXX","firstActivity":"2026-08-26 12:55:11","lastActivity":"2026-08-26 12:55:11","lastUpdate":"2026-08-26 12:59:14","resolvedDateTime":"","mitreTechniques":"","evidenceCount":2,"evidenceSummary":"mailboxEvidence, userEvidence","recommendedActions":"","comments":"","tenantId":"XXX"},{"creationDate":"2026-08-27 09:22:30","alertName":"Email sending limit exceeded","severity":"medium","category":"InitialAccess","status":"new","alertId":"fac473289b-e085-a3ff-e600-08df041c8234","description":"User has exceeded their email sending limit and the action defined within the Outbound Spam policy has been applied. -V1.0.0.0","userPrincipalName":"admin@contoso.com","userDisplayName":"Contoso Administrator","userAccountEnabled":"","deviceName":"","ipAddress":"","alertWebUrl":"https://security.microsoft.com/alerts/fac473289b-e085-a3ff-e600-08df041c8234?tid=XXX","classification":"","determination":"","detectionSource":"microsoftDefenderForOffice365","serviceSource":"microsoftDefenderForOffice365","providerAlertId":"c473289b-e085-a3ff-e600-08df041c8234","threatFamilyName":"","threatDisplayName":"","actorDisplayName":"","assignedTo":"","incidentId":"5","incidentWebUrl":"https://security.microsoft.com/incident2/5/overview?tid=XXX","firstActivity":"2026-08-27 09:20:00","lastActivity":"2026-08-27 09:21:00","lastUpdate":"2026-08-27 09:22:33","resolvedDateTime":"","mitreTechniques":"","evidenceCount":2,"evidenceSummary":"mailboxEvidence, userEvidence","recommendedActions":"","comments":"","tenantId":"XXX"}],"found":true,"skipped":false,"count":3},"analysisTimestamp":"2026-08-27 17:57:37","policy":{"action":"BlockUserForToday","name":"Admin_Custom_Anti_Spam_Policy","externalHourlyLimit":10,"dailyLimit":100,"autoForwarding":"On","internalHourlyLimit":10},"displayName":"Contoso Administrator","lookbackDays":90,"health":{"securitySignalsRules":[{"name":"Forward_To_Alex","enabled":"True","forwardTo":"\"Alex@contoso.com\" [SMTP:Alex@contoso.com]","redirectTo":"","deleteMessage":"False","description":"If the message:\r\n\tthe message was received from \u0027Kai Carter\u0027\r\nTake the following actions:\r\n\tforward the message to \u0027Alex@contoso.com\u0027\r\n\tand stop processing more rules on this message\r\n","priority":"1","mailboxOwnerId":"1cb43ffe-5ae7-4fc8-b60d-33de22df1e7a"}],"forwardingAddress":"smtp:abc@yahoo.com","delegationEntries":[{"permissionType":"FullAccess","user":"CoraT@contoso.com","accessRights":"FullAccess","accessControlType":"","deny":"False","inheritanceType":"All"},{"permissionType":"SendAs","user":"EkaS@contoso.com","accessRights":"SendAs","accessControlType":"Allow","deny":"","inheritanceType":""}],"securitySignalsRulesCount":1,"deliverAndForward":"True","externalForward":true},"trace":{"daily":[{"date":"2026-07-26","total":2,"external":0,"internal":2,"messages":2,"delivered":2,"failed":0,"filteredAsSpam":0},{"date":"2026-07-28","total":23,"external":3,"internal":20,"messages":3,"delivered":21,"failed":2,"filteredAsSpam":0},{"date":"2026-07-29","total":35,"external":3,"internal":32,"messages":3,"delivered":2,"failed":33,"filteredAsSpam":0},{"date":"2026-08-24","total":1,"external":0,"internal":1,"messages":1,"delivered":0,"failed":0,"filteredAsSpam":0},{"date":"2026-08-26","total":14,"external":1,"internal":13,"messages":1,"delivered":0,"failed":14,"filteredAsSpam":0},{"date":"2026-08-27","total":15,"external":1,"internal":14,"messages":1,"delivered":0,"failed":15,"filteredAsSpam":0}],"topDomains":[{"domain":"contoso.com","count":82},{"domain":"gmail.com","count":7},{"domain":"M365x96455577.contoso.com","count":1}],"peakRolling60":35,"totalRecipients":90,"externalList":["zmai95218@gmail.com","acorina288@gmail.com","acorina287@gmail.com","acorina286@gmail.com","zmai95218sss@gmail.com","MeganB@M365x96455577.contoso.com"],"statusBreakdown":[{"status":"Quarantined","count":1},{"status":"Failed","count":64},{"status":"Delivered","count":25}],"maxDaily":35,"messages":[{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"SashaO@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"RonakG@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"RobinK@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"SydneyM@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"zmai95218@gmail.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":true,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"WillB@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"VanceD@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"QuinnC@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"DakotaS@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"AmberR@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"AdilE@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"KaiC@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"MonicaT@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"MarioR@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-27 09:19:38","sender":"admin@contoso.com","recipient":"LisaT@contoso.com","subject":"HR Awareness","status":"Failed","messageId":"\u003cconxxxE987D92E544981BE91DCA5AD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"843c8336-2166-4f10-ae38-08df041c51c1","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-27 09:19:39","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"SashaO@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"RonakG@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"RobinK@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"SydneyM@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"zmai95218@gmail.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":true,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"WillB@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"VanceD@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"KaiC@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"DakotaS@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"AmberR@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"LisaT@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"QuinnC@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"MonicaT@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-26 12:54:33","sender":"admin@contoso.com","recipient":"MarioR@contoso.com","subject":"Join Security Meeting","status":"Failed","messageId":"\u003cconxxx932906919044630D8704A5AE2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"6866e6dc-9868-47cd-7dd5-08df03712d45","fromIP":"86.108.22.177","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-08-26 12:54:34","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-08-24 11:14:45","sender":"admin@contoso.com","recipient":"AmberR@contoso.com","subject":"EICare File","status":"Quarantined","messageId":"\u003cconxxx601FCE9B8A653C752F71A5A02@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ad51876c-59ca-464a-6b82-08df01d0e751","fromIP":"86.108.23.23","toIP":"","size":"66652","isExternal":false,"traceDetails":[{"date":"2026-08-24 11:14:46","event":"Receive","detail":"Message received by: conxxx.xxx.prod.outlook.com"},{"date":"2026-08-24 11:14:46","event":"Submit","detail":"The message was submitted."},{"date":"2026-08-24 11:14:48","event":"Spam","detail":"Spam confidence level: 9"},{"date":"2026-08-24 11:14:49","event":"Deliver","detail":"The message was successfully delivered to the folder: DefaultFolderType:QuarantinedEmailSecured"}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"RonakG@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"SalesandMarketing@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"QuinnC@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"RobinK@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"VanceD@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"WillB@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"SashaO@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"SydneyM@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"DakotaS@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"DefenderforOffice@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"AmberR@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"CoraT@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"MarioR@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"MonicaT@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"KaiC@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:56:19","sender":"admin@contoso.com","recipient":"LisaT@contoso.com","subject":"Re: More 10 - Send As","status":"Failed","messageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"ce688852-eeeb-4246-2bbd-08deed46e038","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:56:20","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"RonakG@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"SalesandMarketing@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"QuinnC@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"RobinK@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"VanceD@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"WillB@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"SashaO@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"SydneyM@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"DakotaS@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"DefenderforOffice@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"AmberR@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"CoraT@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"MarioR@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"MonicaT@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"KaiC@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 07:48:50","sender":"admin@contoso.com","recipient":"LisaT@contoso.com","subject":"More 10","status":"Failed","messageId":"\u003cconxxx88BAFC995EE2EBAE02D4A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"8a5e7004-a212-482d-37f8-08deed45d488","fromIP":"20.107.5.167","toIP":"","size":"0","isExternal":false,"traceDetails":[{"date":"2026-07-29 07:48:52","event":"Fail","detail":"The message was not delivered."}]},{"received":"2026-07-29 06:57:34","sender":"admin@contoso.com","recipient":"acorina288@gmail.com","subject":"Bulk","status":"Delivered","messageId":"\u003cconxxxD1FD0525C98AA244A0D7A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"2c904dc2-003c-4c3d-0849-08deed3eaadd","fromIP":"20.107.5.167","toIP":"2607:f8b0:400e:c0c::1a","size":"25358","isExternal":true,"traceDetails":[{"date":"2026-07-29 06:57:35","event":"Receive","detail":"Message received by: conxxx.xxx.prod.outlook.com"},{"date":"2026-07-29 06:57:35","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-29 06:57:37","event":"TRANSFER","detail":""},{"date":"2026-07-29 06:57:39","event":"Send external","detail":"Message sent to gmail-smtp-in.l.google.com at 2607:f8b0:400e:c0c::1a"}]},{"received":"2026-07-29 06:57:34","sender":"admin@contoso.com","recipient":"acorina287@gmail.com","subject":"Bulk","status":"Delivered","messageId":"\u003cconxxxD1FD0525C98AA244A0D7A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"2c904dc2-003c-4c3d-0849-08deed3eaadd","fromIP":"20.107.5.167","toIP":"2607:f8b0:400e:c0c::1a","size":"25358","isExternal":true,"traceDetails":[{"date":"2026-07-29 06:57:35","event":"Receive","detail":"Message received by: conxxx.xxx.prod.outlook.com"},{"date":"2026-07-29 06:57:35","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-29 06:57:37","event":"TRANSFER","detail":""},{"date":"2026-07-29 06:57:39","event":"Send external","detail":"Message sent to gmail-smtp-in.l.google.com at 2607:f8b0:400e:c0c::1a"}]},{"received":"2026-07-29 06:57:34","sender":"admin@contoso.com","recipient":"acorina286@gmail.com","subject":"Bulk","status":"Failed","messageId":"\u003cconxxxD1FD0525C98AA244A0D7A5CA2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"2c904dc2-003c-4c3d-0849-08deed3eaadd","fromIP":"20.107.5.167","toIP":"","size":"25358","isExternal":true,"traceDetails":[{"date":"2026-07-29 06:57:35","event":"Receive","detail":"Message received by: conxxx.xxx.prod.outlook.com"},{"date":"2026-07-29 06:57:35","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-29 06:57:37","event":"TRANSFER","detail":""},{"date":"2026-07-29 06:57:39","event":"Fail","detail":"Reason: [{LED=550-5.1.1 The email account that you tried to reach does not exist. Please try 550-5.1.1 double-checking the recipient\u0027s email address for typos or 550-5.1.1 unnecessary spaces. For more information, go to 550 5.1.1  https://support.google.com/mail/?p=NoSuchUser d2e1a72fcca58-84e9fe09e3esi4812968b3a.19 - gsmtp};{. OutboundProxyTargetIP: 2607:f8b0:400e:c0c::1a. OutboundProxyTargetHostName: gmail-smtp-in.l.google.com"}]},{"received":"2026-07-28 10:02:17","sender":"admin@contoso.com","recipient":"zmai95218sss@gmail.com","subject":"Invoice","status":"Failed","messageId":"\u003cconxxx088C7B953604F2B7F352A5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"7f2e1f66-204b-4284-1ba7-08deec8f4e54","fromIP":"52.174.182.198","toIP":"","size":"22016","isExternal":true,"traceDetails":[{"date":"2026-07-28 10:02:17","event":"Receive","detail":"Message received by: conxxx.xxx.prod.outlook.com"},{"date":"2026-07-28 10:02:17","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 10:02:18","event":"TRANSFER","detail":""},{"date":"2026-07-28 10:02:19","event":"Fail","detail":"Reason: [{LED=550-5.1.1 The email account that you tried to reach does not exist. Please try 550-5.1.1 double-checking the recipient\u0027s email address for typos or 550-5.1.1 unnecessary spaces. For more information, go to 550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 41be03b00d2f7-cbbb6716c5asi14656767a12.136 - gsmtp}. OutboundProxyTargetIP: 2607:f8b0:400e:c09::1a. OutboundProxyTargetHostName: gmail-smtp-in.l.google.com"}]},{"received":"2026-07-28 10:01:41","sender":"admin@contoso.com","recipient":"zmai95218@gmail.com","subject":"check this please","status":"Delivered","messageId":"\u003cconxxxF973E44CC2BD4E002FB1A5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"46585b2a-58cd-4ec1-a8c4-08deec8f3945","fromIP":"52.174.182.198","toIP":"2607:f8b0:4002:c1b::1a","size":"24927","isExternal":true,"traceDetails":[{"date":"2026-07-28 10:01:42","event":"Receive","detail":"Message received by: conxxx.xxx.prod.outlook.com"},{"date":"2026-07-28 10:01:42","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 10:01:45","event":"TRANSFER","detail":""},{"date":"2026-07-28 10:01:46","event":"Send external","detail":"Message sent to gmail-smtp-in.l.google.com at 2607:f8b0:4002:c1b::1a"}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"RobinK@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"RonakG@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"QuinnC@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"OperationsDepartment@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:20","event":"Expand DL","detail":"The message was sent to a distribution list (DL) that was expanded to the recipients of the DL."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:23","event":"Drop","detail":"Reason: [{LED=250 2.1.5 RESOLVER.GRP.Expanded; distribution list expanded};{MSG=};{FQDN=};{IP=};{LRT=}]"},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"ProductionDepartment@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:20","event":"Expand DL","detail":"The message was sent to a distribution list (DL) that was expanded to the recipients of the DL."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:23","event":"Drop","detail":"Reason: [{LED=250 2.1.5 RESOLVER.GRP.Expanded; distribution list expanded};{MSG=};{FQDN=};{IP=};{LRT=}]"},{"date":"2026-07-28 06:51:23","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"VanceD@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"WillB@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"SydneyM@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"SalesandMarketing@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:20","event":"Expand DL","detail":"The message was sent to a distribution list (DL) that was expanded to the recipients of the DL."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:23","event":"Drop","detail":"Reason: [{LED=250 2.1.5 RESOLVER.GRP.Expanded; distribution list expanded};{MSG=};{FQDN=};{IP=};{LRT=}]"},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"SashaO@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"MonicaT@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49743","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"DakotaS@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:23","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"DefenderforOffice@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:21","event":"Expand DL","detail":"The message was sent to a distribution list (DL) that was expanded to the recipients of the DL."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:23","event":"Drop","detail":"Reason: [{LED=250 2.1.5 RESOLVER.GRP.Expanded; distribution list expanded};{MSG=};{FQDN=};{IP=};{LRT=}]"},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"CoraT@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:25","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"admin@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"50064","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:21","event":"Redirect","detail":"The message was directed to MeganB@M365x96455577.contoso.com."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:23","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:23","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:23","event":"Fail","detail":"Reason: [{LED=550 5.7.520 Access denied, Your organization does not allow external forwarding. Please contact your administrator for further assistance. AS(7555)};{MSG=};{FQDN=};{IP=};{LRT=}]"},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."},{"date":"2026-07-28 06:53:26","event":"Fail","detail":"Reason: [{LED=550 5.7.520 Access denied, Your organization does not allow external forwarding. Please contact your administrator for further assistance. AS(7555)};{MSG=};{FQDN=};{IP=};{LRT=}]"}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"AmberR@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"MarioR@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49743","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"MeganB@M365x96455577.contoso.com","subject":"test","status":"Failed","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"21682","isExternal":true,"traceDetails":[{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:23","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:23","event":"Fail","detail":"Reason: [{LED=550 5.7.520 Access denied, Your organization does not allow external forwarding. Please contact your administrator for further assistance. AS(7555)};{MSG=};{FQDN=};{IP=};{LRT=}]"},{"date":"2026-07-28 06:53:26","event":"Fail","detail":"Reason: [{LED=550 5.7.520 Access denied, Your organization does not allow external forwarding. Please contact your administrator for further assistance. AS(7555)};{MSG=};{FQDN=};{IP=};{LRT=}]"}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"LisaT@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"KaiC@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-28 06:51:19","sender":"admin@contoso.com","recipient":"Leadership@contoso.com","subject":"test","status":"Delivered","messageId":"\u003cconxxx718ECD0751F3FBFE77CDA5CB2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"243d2a3a-4438-410f-3249-08deec74a0fb","fromIP":"108.143.43.187","toIP":"","size":"49899","isExternal":false,"traceDetails":[{"date":"2026-07-28 06:51:20","event":"Receive","detail":"Message received by: MW5PR03MB6877.xxx.prod.outlook.com"},{"date":"2026-07-28 06:51:20","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-28 06:51:20","event":"Expand DL","detail":"The message was sent to a distribution list (DL) that was expanded to the recipients of the DL."},{"date":"2026-07-28 06:51:22","event":"TRANSFER","detail":""},{"date":"2026-07-28 06:51:23","event":"Drop","detail":"Reason: [{LED=250 2.1.5 RESOLVER.GRP.Expanded; distribution list expanded};{MSG=};{FQDN=};{IP=};{LRT=}]"},{"date":"2026-07-28 06:51:24","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-26 09:10:35","sender":"admin@contoso.com","recipient":"MonicaT@contoso.com","subject":"test send as","status":"Delivered","messageId":"\u003cconxxx8F3EC391B99180B5D512A5CD2@conxxx.xxx.prod.outlook.com\u003e","messageTraceId":"0a5986ea-4d82-4a49-19e4-08deeaf5c095","fromIP":"167.220.197.233","toIP":"","size":"35135","isExternal":false,"traceDetails":[{"date":"2026-07-26 09:10:36","event":"Receive","detail":"Message received by: PH0PR03MB5846.xxx.prod.outlook.com"},{"date":"2026-07-26 09:10:36","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-26 09:10:37","event":"Deliver","detail":"The message was successfully delivered."}]},{"received":"2026-07-26 08:47:30","sender":"admin@contoso.com","recipient":"BillieV@contoso.com","subject":"test - send as","status":"Delivered","messageId":"\u003cBY1PR03MB78983E435AA91D7AA2810AA3AFCD2@BY1PR03MB7898.xxx.prod.outlook.com\u003e","messageTraceId":"7c32b849-8f31-48b5-bc5d-08deeaf2874a","fromIP":"167.220.197.233","toIP":"","size":"35170","isExternal":false,"traceDetails":[{"date":"2026-07-26 08:47:31","event":"Receive","detail":"Message received by: SJ0PR03MB6389.xxx.prod.outlook.com"},{"date":"2026-07-26 08:47:31","event":"Submit","detail":"The message was submitted."},{"date":"2026-07-26 08:47:33","event":"Deliver","detail":"The message was successfully delivered."}]}],"effectiveLimit":100,"internalCount":82,"truncated":false,"uniqueExternal":6,"totalMessages":11},"sendas":{"list":[{"creationTime":"2026-08-26 14:37:04","operation":"SendAs","userId":"admin@contoso.com","sendAsUserSmtp":"AdilE@contoso.com","sendOnBehalfOfUserSmtp":"","mailboxOwnerUpn":"admin@contoso.com","clientIP":"86.108.22.177","subject":"Onboarding session","internetMessageId":"\u003cconxxx9E332EECDEAD7A6F8647A5AE2@conxxx.xxx.prod.outlook.com\u003e","resultStatus":"Succeeded","workload":"Exchange"},{"creationTime":"2026-08-26 14:37:04","operation":"SendAs","userId":"admin@contoso.com","sendAsUserSmtp":"AdilE@contoso.com","sendOnBehalfOfUserSmtp":"","mailboxOwnerUpn":"admin@contoso.com","clientIP":"86.108.22.177","subject":"Onboarding session","internetMessageId":"\u003cconxxx9E332EECDEAD7A6F8647A5AE2@conxxx.xxx.prod.outlook.com\u003e","resultStatus":"Succeeded","workload":"Exchange"},{"creationTime":"2026-07-29 07:56:20","operation":"SendAs","userId":"admin@contoso.com","sendAsUserSmtp":"AdilE@contoso.com","sendOnBehalfOfUserSmtp":"","mailboxOwnerUpn":"admin@contoso.com","clientIP":"20.107.5.167","subject":"Re: More 10 - Send As","internetMessageId":"\u003cconxxxFCB1F8F61E8C83F47A31A5CA2@conxxx.xxx.prod.outlook.com\u003e","resultStatus":"Succeeded","workload":"Exchange"},{"creationTime":"2026-07-26 08:47:31","operation":"SendAs","userId":"admin@contoso.com","sendAsUserSmtp":"admin@contoso.com","sendOnBehalfOfUserSmtp":"","mailboxOwnerUpn":"AdilE@contoso.com","clientIP":"167.220.197.233","subject":"test - send as","internetMessageId":"\u003cBY1PR03MB78983E435AA91D7AA2810AA3AFCD2@BY1PR03MB7898.xxx.prod.outlook.com\u003e","resultStatus":"Succeeded","workload":"Exchange"}],"found":true,"error":null,"skipped":false,"count":4},"affectedUser":"admin@contoso.com","verdict":{"securitySignals":[{"name":"External forwarding","condition":"Mailbox has an external forwarding SMTP address configured","met":true,"detail":"Forwarding to: smtp:abc@yahoo.com","detailType":"externalForwarding","entries":[{"target":"","source":"","matchedDomain":"","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"","value":""}],"messages":[{"messageId":"","senderAddress":"","recipientAddress":"","subject":"","type":"","entityType":"","policyType":"","policyName":"","quarantineTypes":"","releaseStatus":"","receivedTime":"","systemReleased":"","expires":"","reported":""}]},{"name":"Inbox rules","condition":"Inbox rules that forward, redirect, or delete messages exist","met":true,"detail":"1 suspicious rule(s) detected","detailType":"inboxRules","entries":[{"target":"","source":"","matchedDomain":"","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"","value":""}],"messages":[{"messageId":"","senderAddress":"","recipientAddress":"","subject":"","type":"","entityType":"","policyType":"","policyName":"","quarantineTypes":"","releaseStatus":"","receivedTime":"","systemReleased":"","expires":"","reported":""}]},{"name":"Auto-forward to free webmail","condition":"Forwarding/redirect target is a free webmail domain (gmail, outlook, yahoo, etc.)","met":true,"detail":"Target(s): smtp:abc@yahoo.com","detailType":"freeWebmail","entries":[{"target":"smtp:abc@yahoo.com","source":"Mailbox forwarding (ForwardingSmtpAddress)","matchedDomain":"yahoo.com","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"","value":""}],"messages":[{"messageId":"","senderAddress":"","recipientAddress":"","subject":"","type":"","entityType":"","policyType":"","policyName":"","quarantineTypes":"","releaseStatus":"","receivedTime":"","systemReleased":"","expires":"","reported":""}]},{"name":"Delegation or SendAs permissions","condition":"Another account holds FullAccess or SendAs on this mailbox","met":true,"detail":"FullAccess: 1; SendAs: 1","detailType":"delegation","entries":[{"target":"","source":"","matchedDomain":"","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"","value":""}],"messages":[{"messageId":"","senderAddress":"","recipientAddress":"","subject":"","type":"","entityType":"","policyType":"","policyName":"","quarantineTypes":"","releaseStatus":"","receivedTime":"","systemReleased":"","expires":"","reported":""}]},{"name":"High similarity of message subjects","condition":"At least 50% of message-trace recipient rows share one exact subject line (evaluated only when more than 10 rows exist)","met":false,"detail":"Top subject covers 21 of 90 recipient rows (23.3%)","detailType":"subjectSimilarity","entries":[{"target":"","source":"","matchedDomain":"","subject":"test","messageCount":21,"percentage":23.3,"sentDateTime":"2026-07-28 06:51:19","name":"","value":""},{"target":"","source":"","matchedDomain":"","subject":"Re: More 10 - Send As","messageCount":16,"percentage":17.8,"sentDateTime":"2026-07-29 07:56:19","name":"","value":""},{"target":"","source":"","matchedDomain":"","subject":"More 10","messageCount":16,"percentage":17.8,"sentDateTime":"2026-07-29 07:48:50","name":"","value":""},{"target":"","source":"","matchedDomain":"","subject":"HR Awareness","messageCount":15,"percentage":16.7,"sentDateTime":"2026-08-27 09:19:38","name":"","value":""},{"target":"","source":"","matchedDomain":"","subject":"Join Security Meeting","messageCount":14,"percentage":15.6,"sentDateTime":"2026-08-26 12:54:33","name":"","value":""}],"messages":[{"messageId":"","senderAddress":"","recipientAddress":"","subject":"","type":"","entityType":"","policyType":"","policyName":"","quarantineTypes":"","releaseStatus":"","receivedTime":"","systemReleased":"","expires":"","reported":""}]},{"name":"Active Defender alerts","condition":"At least 1 Defender alert with status New or In progress in last 30 days","met":true,"detail":"3 alert(s) require attention (New or In progress)","detailType":"defenderAlerts","entries":[{"target":"","source":"","matchedDomain":"","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"","value":""}],"messages":[{"messageId":"","senderAddress":"","recipientAddress":"","subject":"","type":"","entityType":"","policyType":"","policyName":"","quarantineTypes":"","releaseStatus":"","receivedTime":"","systemReleased":"","expires":"","reported":""}]},{"name":"Outbound messages quarantined","condition":"At least 1 outbound message sent by this sender was quarantined","met":true,"detail":"Outbound messages quarantined from this sender: 1; Quarantine types: Malware","detailType":"quarantineMessages","entries":[{"target":"","source":"","matchedDomain":"","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"","value":""}],"messages":[{"messageId":"\u003cconxxx601FCE9B8A653C752F71A5A02@conxxx.xxx.prod.outlook.com\u003e","senderAddress":"admin@contoso.com","recipientAddress":"amberr@contoso.com","subject":"EICare File","type":"Malware","entityType":"Email","policyType":"AntiMalwarePolicy","policyName":"Default","quarantineTypes":"Malware","releaseStatus":"NOTRELEASED","receivedTime":"2026-08-24 14:14:45","systemReleased":"False","expires":"2026-09-23 14:14:45","reported":"False"}]},{"name":"Unified Audit Enabled","condition":"Mailbox audit logging (AuditEnabled) is turned on","met":false,"detail":"Unified Audit Log is enabled (AuditEnabled = True)","detailType":"auditEnabled","entries":[{"target":"","source":"","matchedDomain":"","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"AuditEnabled","value":"True"},{"target":"","source":"","matchedDomain":"","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"AuditLogAgeLimit","value":"90.00:00:00"},{"target":"","source":"","matchedDomain":"","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"AuditAdmin","value":"Update, MoveToDeletedItems, SoftDelete, HardDelete, SendAs, SendOnBehalf, Create, UpdateFolderPermissions, UpdateInboxRules, UpdateCalendarDelegation, ApplyRecord, MailItemsAccessed, Send"},{"target":"","source":"","matchedDomain":"","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"AuditDelegate","value":"Update, MoveToDeletedItems, SoftDelete, HardDelete, SendAs, SendOnBehalf, Create, UpdateFolderPermissions, UpdateInboxRules, ApplyRecord, MailItemsAccessed"},{"target":"","source":"","matchedDomain":"","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"AuditOwner","value":"Update, MoveToDeletedItems, SoftDelete, HardDelete, UpdateFolderPermissions, UpdateInboxRules, UpdateCalendarDelegation, ApplyRecord, MailItemsAccessed, Send"},{"target":"","source":"","matchedDomain":"","subject":"","messageCount":null,"percentage":null,"sentDateTime":"","name":"DefaultAuditSet","value":"Admin, Delegate, Owner"}],"messages":[{"messageId":"","senderAddress":"","recipientAddress":"","subject":"","type":"","entityType":"","policyType":"","policyName":"","quarantineTypes":"","releaseStatus":"","receivedTime":"","systemReleased":"","expires":"","reported":""}]}],"maxDaily":35,"blockType":"Hourly recipient limit exceeded","effectiveLimit":100,"classification":"EXPECTED_BLOCK_HOURLY","evidence":["External recipients/hour: found 1 vs policy limit 10 (within limit)","Internal recipients/hour: found 14 vs policy limit 10 (EXCEEDED)","Message trace: 32 messages, 111 total recipients, 6 unique external","Policy \u0027Admin_Custom_Anti_Spam_Policy\u0027: Daily=100, ExtHourly=10, IntHourly=10, Action=BlockUserForToday","Restricted since: 08/27/2026 09:20:03, Reason: EmailSendingLimitExceeded;InternalRecipientCountToday=0;ExternalRecipientCountToday=0;ExceedingLimitType=Internal;Last MessagetraceId=843c8336-2166-4f10-ae38-08df041c51c1;LastMessageRcptCount=15;CIP=86.108.22.177;AS:45004","Block detail: ExceedingLimitType=Internal (this is the recipient limit was exceeded); LastMessageRcptCount=15 (recipients on the message that triggered the block)","Defender alerts: 3 alerts in last 30 days"],"attentionNeededCount":6,"noAttentionCount":2},"restricted":{"timestamp":"08/27/2026 09:20:03","isBlocked":true,"lookupFailed":false,"error":null,"blockedSender":"ADMIN@contoso.com","reason":"EmailSendingLimitExceeded;InternalRecipientCountToday=0;ExternalRecipientCountToday=0;ExceedingLimitType=Internal;Last MessagetraceId=843c8336-2166-4f10-ae38-08df041c51c1;LastMessageRcptCount=15;CIP=86.108.22.177;AS:45004","identity":"ADMIN@contoso.com"},"recipientType":"UserMailbox","reportTimestamp":"2026-08-27 14:59:32 UTC"};
+
+        function esc(v) {
+            if (v === null || v === undefined) { return ''; }
+            return String(v)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        function el(id) { return document.getElementById(id); }
+        function num(v) { return (v === null || v === undefined) ? 0 : Number(v); }
+
+        // ---------- Clipboard ----------
+        function copyText(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () { flash('Copied to clipboard'); },
+                    function () { legacyCopy(text); });
+            } else { legacyCopy(text); }
+        }
+        function legacyCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.focus(); ta.select();
+            try { document.execCommand('copy'); flash('Copied to clipboard'); } catch (e) { flash('Copy failed'); }
+            document.body.removeChild(ta);
+        }
+        function flash(msg) {
+            var d = document.createElement('div');
+            d.textContent = msg;
+            d.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#323130;color:#fff;padding:8px 16px;border-radius:4px;z-index:9999;font-size:13px;';
+            document.body.appendChild(d);
+            setTimeout(function () { document.body.removeChild(d); }, 1600);
+        }
+
+        // ---------- Header + KPIs ----------
+        function renderHeader() {
+            el('headerMeta').innerHTML =
+                'User: <strong>' + esc(reportData.affectedUser) + '</strong> (' + esc(reportData.displayName) + ', ' + esc(reportData.recipientType) + ')<br>' +
+                'Generated: ' + esc(reportData.reportTimestamp) + ' &middot; Lookback: ' + esc(reportData.lookbackDays) + ' day(s)';
+            el('footer').innerHTML = '<div class="f-title">Sender Restriction Analyzer \u2014 Recipient Rate Limit (RRL) Analysis</div>' +
+                '<div class="f-sub">Report generated ' + esc(reportData.reportTimestamp) + ' \u2014 Read-only analysis; no changes were made to the tenant.</div>';
+        }
+        function kpiCard(icon, label, value, meta, cls) {
+            return '<div class="stat-card ' + (cls || '') + '"><div class="stat-icon">' + icon + '</div><div class="stat-label">' + esc(label) +
+                '</div><div class="stat-value">' + esc(value) + '</div><div class="stat-meta">' + esc(meta) + '</div></div>';
+        }
+        function renderKpis() {
+            var t = reportData.trace || {}, r = reportData.restricted || {}, a = reportData.alerts || {};
+            var limit = num(t.effectiveLimit);
+            var pct = limit > 0 ? Math.round((num(t.maxDaily) / limit) * 100) : 0;
+            var html = '';
+            html += kpiCard('&#128274;', 'Restriction Status',
+                r.isBlocked ? 'Blocked' : (r.lookupFailed ? 'Unknown' : 'Active'),
+                r.isBlocked ? ('Since ' + (r.timestamp || 'unknown')) : (r.lookupFailed ? 'Lookup failed \u2014 verify manually' : 'Not restricted'),
+                r.isBlocked ? 'danger' : (r.lookupFailed ? 'warning' : 'success'));
+            html += kpiCard('&#128200;', 'Peak Daily Recipients', num(t.maxDaily), 'of ' + limit + ' daily limit (' + pct + '%)',
+                pct >= 100 ? 'danger' : (pct >= 80 ? 'warning' : ''));
+            html += kpiCard('&#128231;', 'Messages', num(t.totalMessages), num(t.totalRecipients) + ' recipient rows', '');
+            html += kpiCard('&#128737;', 'Defender Alerts', num(a.count), a.skipped ? 'Skipped' : 'Last 30 days', num(a.count) > 0 ? 'warning' : 'success');
+            el('kpiGrid').innerHTML = html;
+        }
+
+        // ---------- Tabs ----------
+        var TABS = [
+            { id: 'verdict',    icon: '&#128203;', label: 'Verdict & Summary', count: null },
+            { id: 'restricted', icon: '&#128274;', label: 'Restricted Entity', count: function () { return reportData.restricted.isBlocked ? 'Yes' : 'No'; } },
+            { id: 'policy',     icon: '&#128203;', label: 'Outbound Spam Policy', count: null },
+            { id: 'volume',     icon: '&#128202;', label: 'Volume Overview',   count: null, anchor: 'section-volume' },
+            { id: 'trace',      icon: '&#128233;', label: 'Message Trace',     count: function () { return (reportData.trace.messages || []).length; }, anchor: 'section-messagetrace' },
+            { id: 'alerts',     icon: '&#128737;', label: 'Defender Alerts',    count: function () { return (reportData.alerts.list || []).length; } },
+            { id: 'sendas',     icon: '&#128232;', label: 'SendAs Logs',        count: function () { return (reportData.sendas.list || []).length; } },
+            { id: 'indicators', icon: '&#9888;',   label: 'Mailbox Security Insights', count: function () { var inds = (reportData.verdict && reportData.verdict.securitySignals) || []; var n = 0; for (var i = 0; i < inds.length; i++) { if (inds[i].met) { n++; } } return n; } },
+            { id: 'recommendations', icon: '&#128161;', label: 'Recommendations', count: null }
+        ];
+        function renderTabs() {
+            var nav = el('sidebarNav'), html = '';
+            for (var i = 0; i < TABS.length; i++) {
+                var tb = TABS[i];
+                var c = tb.count ? tb.count() : null;
+                html += '<button class="sidebar-item' + (i === 0 ? ' active' : '') + '" type="button" data-tab="' + tb.id + '">' +
+                    '<span class="sidebar-icon">' + tb.icon + '</span><span>' + esc(tb.label) + '</span>' +
+                    (c !== null ? '<span class="sidebar-count">' + c + '</span>' : '') + '</button>';
+            }
+            nav.innerHTML = html;
+            var btns = nav.querySelectorAll('.sidebar-item');
+            for (var j = 0; j < btns.length; j++) {
+                btns[j].addEventListener('click', function () { activateTab(this.getAttribute('data-tab')); });
+            }
+            window.addEventListener('scroll', scrollSpy, { passive: true });
+        }
+        function setActiveNav(id) {
+            var btns = document.querySelectorAll('.sidebar-item');
+            for (var i = 0; i < btns.length; i++) {
+                var on = btns[i].getAttribute('data-tab') === id;
+                btns[i].className = 'sidebar-item' + (on ? ' active' : '');
+            }
+        }
+        function tabById(id) {
+            for (var i = 0; i < TABS.length; i++) { if (TABS[i].id === id) { return TABS[i]; } }
+            return null;
+        }
+        function activateTab(id) {
+            setActiveNav(id);
+            var tb = tabById(id);
+            var target = (tb && tb.anchor) ? el(tb.anchor) : el('panel-' + id);
+            if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+            if (window.innerWidth <= 992) { closeSidebar(); }
+        }
+        function scrollSpy() {
+            var current = TABS[0].id;
+            for (var i = 0; i < TABS.length; i++) {
+                var target = TABS[i].anchor ? el(TABS[i].anchor) : el('panel-' + TABS[i].id);
+                if (target && target.getBoundingClientRect().top <= 120) { current = TABS[i].id; }
+            }
+            setActiveNav(current);
+        }
+        function toggleSidebar() {
+            var s = el('rrlSidebar'), o = el('sidebarOverlay');
+            if (s.classList.contains('open')) { s.classList.remove('open'); o.classList.remove('show'); }
+            else { s.classList.add('open'); o.classList.add('show'); }
+        }
+        function closeSidebar() {
+            el('rrlSidebar').classList.remove('open');
+            el('sidebarOverlay').classList.remove('show');
+        }
+
+        // ---------- Generic sortable/paginated table ----------
+        function makeTable(container, columns, rows, opts) {
+            opts = opts || {};
+            var state = { sortKey: null, sortDir: 1, page: 1, pageSize: opts.pageSize || 25, filter: '' };
+
+            var controls = document.createElement('div');
+            controls.className = 'table-controls';
+            var left = document.createElement('div');
+            if (opts.searchable) {
+                var input = document.createElement('input');
+                input.className = 'search-input'; input.type = 'search'; input.placeholder = 'Search...';
+                input.addEventListener('input', function () { state.filter = this.value.toLowerCase(); state.page = 1; draw(); });
+                left.appendChild(input);
+            }
+            var right = document.createElement('div');
+            if (opts.copyButton) {
+                var cb = document.createElement('button');
+                cb.className = 'btn'; cb.type = 'button'; cb.textContent = opts.copyButton;
+                cb.addEventListener('click', function () { opts.onCopy(); });
+                right.appendChild(cb);
+            }
+            controls.appendChild(left); controls.appendChild(right);
+            container.appendChild(controls);
+
+            var scroll = document.createElement('div');
+            scroll.className = 'table-scroll';
+            var table = document.createElement('table');
+            var thead = document.createElement('thead');
+            var htr = document.createElement('tr');
+            for (var c = 0; c < columns.length; c++) {
+                (function (col) {
+                    var th = document.createElement('th');
+                    th.textContent = col.label;
+                    if (col.sortable !== false) {
+                        th.className = 'sortable';
+                        th.addEventListener('click', function () {
+                            if (state.sortKey === col.key) { state.sortDir = -state.sortDir; }
+                            else { state.sortKey = col.key; state.sortDir = 1; }
+                            draw();
+                        });
+                    }
+                    htr.appendChild(th);
+                })(columns[c]);
+            }
+            thead.appendChild(htr); table.appendChild(thead);
+            var tbody = document.createElement('tbody');
+            table.appendChild(tbody);
+            scroll.appendChild(table); container.appendChild(scroll);
+
+            var pager = document.createElement('div');
+            pager.className = 'pager'; container.appendChild(pager);
+
+            function filtered() {
+                if (!state.filter) { return rows; }
+                return rows.filter(function (row) {
+                    for (var i = 0; i < columns.length; i++) {
+                        var val = row[columns[i].key];
+                        if (val !== null && val !== undefined && String(val).toLowerCase().indexOf(state.filter) !== -1) { return true; }
+                    }
+                    return false;
+                });
+            }
+            function sorted(data) {
+                if (!state.sortKey) { return data; }
+                var key = state.sortKey, dir = state.sortDir;
+                return data.slice().sort(function (a, b) {
+                    var x = a[key], y = b[key];
+                    var nx = Number(x), ny = Number(y);
+                    if (!isNaN(nx) && !isNaN(ny) && x !== '' && y !== '') { return (nx - ny) * dir; }
+                    x = (x === null || x === undefined) ? '' : String(x).toLowerCase();
+                    y = (y === null || y === undefined) ? '' : String(y).toLowerCase();
+                    return (x < y ? -1 : (x > y ? 1 : 0)) * dir;
+                });
+            }
+            function draw() {
+                var ths = htr.querySelectorAll('th');
+                for (var i = 0; i < ths.length; i++) {
+                    if (columns[i].sortable === false) { continue; }
+                    ths[i].className = 'sortable' + (state.sortKey === columns[i].key ? (state.sortDir === 1 ? ' sort-asc' : ' sort-desc') : '');
+                }
+                var data = sorted(filtered());
+                var total = data.length;
+                var pages = Math.max(1, Math.ceil(total / state.pageSize));
+                if (state.page > pages) { state.page = pages; }
+                var start = (state.page - 1) * state.pageSize;
+                var slice = data.slice(start, start + state.pageSize);
+                if (!slice.length) {
+                    tbody.innerHTML = '<tr><td colspan="' + columns.length + '" class="empty">No matching rows.</td></tr>';
+                } else {
+                    var h = '';
+                    for (var r = 0; r < slice.length; r++) {
+                        h += '<tr>';
+                        for (var c = 0; c < columns.length; c++) {
+                            h += '<td>' + (columns[c].render ? columns[c].render(slice[r]) : esc(slice[r][columns[c].key])) + '</td>';
+                        }
+                        h += '</tr>';
+                    }
+                    tbody.innerHTML = h;
+                }
+                pager.innerHTML = '';
+                var info = document.createElement('span');
+                info.className = 'muted';
+                info.textContent = total + ' row(s) \u2014 page ' + state.page + ' of ' + pages;
+                var prev = document.createElement('button');
+                prev.className = 'btn'; prev.type = 'button'; prev.textContent = 'Prev';
+                prev.disabled = state.page <= 1;
+                prev.addEventListener('click', function () { if (state.page > 1) { state.page--; draw(); } });
+                var next = document.createElement('button');
+                next.className = 'btn'; next.type = 'button'; next.textContent = 'Next';
+                next.disabled = state.page >= pages;
+                next.addEventListener('click', function () { if (state.page < pages) { state.page++; draw(); } });
+                pager.appendChild(prev); pager.appendChild(next); pager.appendChild(info);
+            }
+            draw();
+        }
+
+        function statusBadge(s) {
+            if (!s) { return ''; }
+            var safe = String(s).replace(/[^A-Za-z]/g, '');
+            return '<span class="badge badge-' + safe + '">' + esc(s) + '</span>';
+        }
+
+        // ---------- Panels ----------
+        function renderVerdictPanel() {
+            var v = reportData.verdict || {}, p = reportData.policy || {};
+            var boldTitles = ['External recipients/hour', 'Internal recipients/hour', 'Message trace', 'Policy', 'Restricted since', 'Block detail', 'Defender alerts'];
+            var evidence = (v.evidence || []).map(function (x) {
+                var safe = esc(x).replace(/policy &quot;([^&]*)&quot;/g, 'policy &quot;<strong></strong>&quot;');
+                for (var bi = 0; bi < boldTitles.length; bi++) {
+                    var t = esc(boldTitles[bi]);
+                    if (safe.indexOf(t) === 0) { safe = '<strong>' + t + '</strong>' + safe.slice(t.length); break; }
+                }
+                return '<li>' + safe + '</li>';
+            }).join('') || '<li class="muted">None recorded.</li>';
+            var guidance = verdictGuidance(v.classification);
+            el('panel-verdict').innerHTML =
+                '<div class="section"><h2>Verdict</h2>' +
+                '<div class="kv"><strong>Classification</strong> ' + esc(v.classification) + '</div>' +
+                (v.blockType ? '<div class="kv"><strong>Block type</strong> ' + esc(v.blockType) + '</div>' : '') +
+                '<h3>Key Findings</h3><ul class="list">' + evidence + '</ul>' +
+                '<div class="guidance">' + guidance + '</div></div>';
+        }
+        function renderPolicyPanel() {
+            var p = reportData.policy || {};
+            el('panel-policy').innerHTML =
+                '<div class="section"><h2>Outbound Spam Policy</h2>' +
+                '<div class="kv"><strong>Policy name</strong> ' + esc(p.name) + '</div>' +
+                '<div class="kv"><strong>Daily limit</strong> ' + esc(p.dailyLimit) + ' recipients</div>' +
+                '<div class="kv"><strong>External hourly limit</strong> ' + esc(p.externalHourlyLimit) + '</div>' +
+                '<div class="kv"><strong>Internal hourly limit</strong> ' + esc(p.internalHourlyLimit) + '</div>' +
+                '<div class="kv"><strong>Action at threshold</strong> ' + esc(p.action) + '</div>' +
+                '<div class="kv"><strong>Auto-forwarding</strong> ' + esc(p.autoForwarding) + '</div></div>';
+        }
+        function renderRecommendations() {
+            return '<div class="section"><h2>Recommendations</h2>' +
+                '<h3>Why the limit exists</h3>' +
+                '<ul class="list">' +
+                '<li>A normal Microsoft 365 user mailbox is meant for everyday person-to-person email, not for bulk or automated sending.</li>' +
+                '<li>To keep everyone protected from spam and abuse, Microsoft enforces a <strong>Recipient Rate Limit (RRL)</strong>. A regular mailbox can send to about <strong>10,000 recipients per day</strong>, and there is also a limit of around <strong>30 messages per minute</strong>.</li>' +
+                '<li>Once you exceed those limits, the mailbox is temporarily blocked from sending.</li>' +
+                '</ul>' +
+                '<h3>More reading</h3>' +
+                '<ul class="list">' +
+                '<li><a href="https://learn.microsoft.com/office365/servicedescriptions/exchange-online-service-description/exchange-online-limits" target="_blank" rel="noopener">Exchange Online sending limits</a></li>' +
+                '</ul>' +
+                '<h3>What to do if you need to send more</h3>' +
+                '<div style="margin:6px 0 10px;font-size:14px;">If you need to reach <strong>more than 10,000 recipients per day</strong> or send <strong>more than 30 messages per minute</strong>, move that traffic off your regular mailbox. You can choose one of the options below that fits what you are sending.</div>' +
+                '<div class="recommendation-options">' +
+                '<details class="recommendation-option"><summary><span class="recommendation-number">1</span><span>High Volume Email (HVE) for Microsoft 365</span></summary><div class="recommendation-content">' +
+                '<div class="kv" style="margin:4px 0;">Use this for internal and line-of-business mail sent from your own apps, scripts, or devices such as printers and scanners &mdash; things like reports, statements, and notifications going to people inside and outside your company.</div>' +
+                '<ul class="list">' +
+                '<li>Ask your IT admin (whoever manages your Microsoft 365 tenant) to turn on the High Volume Email service.</li>' +
+                '<li>Have them create a separate High Volume Email account for your app or device. Because it is separate from your normal mailbox, your everyday email keeps working even during large sends.</li>' +
+                '<li>Update your app, script, or device to send through that account instead of your personal mailbox.</li>' +
+                '<li>Run a small test send first, check that it arrives, then increase your volume.</li>' +
+                '<li>More details: <a href="https://learn.microsoft.com/exchange/mail-flow-best-practices/high-volume-mails-m365" target="_blank" rel="noopener">High-volume email for Microsoft 365</a></li>' +
+                '</ul></div></details>' +
+                '<details class="recommendation-option"><summary><span class="recommendation-number">2</span><span>Azure Communication Services Email</span></summary><div class="recommendation-content">' +
+                '<div class="kv" style="margin:4px 0;">A good fit for developers and applications sending large amounts of transactional email &mdash; sign-up confirmations, password resets, receipts &mdash; where you pay for what you use and no mailbox is involved.</div>' +
+                '<ul class="list">' +
+                '<li>Use an existing Azure subscription or create one.</li>' +
+                '<li>Create an Email Communication Service resource and connect a verified sending domain (a free trial subdomain or your own domain).</li>' +
+                '<li>Wire the connection details or SDK into your application to start sending.</li>' +
+                '<li>More details: <a href="https://learn.microsoft.com/azure/communication-services/concepts/email/email-overview" target="_blank" rel="noopener">Azure Communication Services Email overview</a></li>' +
+                '</ul></div></details>' +
+                '<details class="recommendation-option"><summary><span class="recommendation-number">3</span><span>A dedicated bulk or marketing email provider</span></summary><div class="recommendation-content">' +
+                '<div class="kv" style="margin:4px 0;">Worth considering for newsletters and marketing campaigns, where you also want subscriber lists, templates, unsubscribe handling, and delivery reports.</div>' +
+                '<ul class="list">' +
+                '<li>Pick an established bulk or marketing email platform.</li>' +
+                '<li>Verify your sending domain and set up SPF, DKIM, and DMARC so your mail is trusted.</li>' +
+                '<li>To follow best practices for email marketing, check <a href="https://learn.microsoft.com/dynamics365/customer-insights/journeys/get-ready-email-marketing" target="_blank" rel="noopener">the article</a>.</li>' +
+                '</ul></div></details></div>' +
+                '<div class="guidance">Note: keep everyday email on your normal mailbox, and move large or automated sending to a service built for it &mdash; High Volume Email, Azure Communication Services, or a bulk email provider &mdash; so you do not hit the Recipient Rate Limit.</div></div>';
+        }
+        function verdictGuidance(c) {
+            if (c === 'EXPECTED_BLOCK_DAILY' || c === 'EXPECTED_BLOCK_HOURLY' || c === 'EXPECTED_BLOCK') {
+                return 'This block appears expected: the mailbox is restricted for outbound sending. To unblock and remove users from Restricted entities page follow the steps in <a href="https://learn.microsoft.com/defender-office-365/outbound-spam-restore-restricted-users" target="_blank" rel="noopener">the article</a>.';
+            }
+            if (c === 'NO_BLOCK_FOUND') {
+                return 'No active restriction was detected for this mailbox.';
+            }
+            return 'No active restriction was detected for this mailbox.';
+        }
+
+        function renderChart() {
+            var daily = reportData.trace.daily || [];
+            if (!daily.length) { return '<div class="empty">No daily volume data.</div>'; }
+            var limit = num(reportData.trace.effectiveLimit);
+            var max = limit;
+            for (var i = 0; i < daily.length; i++) { if (num(daily[i].total) > max) { max = num(daily[i].total); } }
+            if (max <= 0) { max = 1; }
+            var limitPct = limit > 0 ? (limit / max) * 100 : -1;
+            var rows = '';
+            for (var d = 0; d < daily.length; d++) {
+                var val = num(daily[d].total);
+                var w = (val / max) * 100;
+                var over = limit > 0 && val >= limit;
+                rows += '<div class="chart-row"><div class="chart-label">' + esc(daily[d].date) + '</div>' +
+                    '<div class="chart-bar-wrap">' +
+                    '<div class="chart-bar' + (over ? ' over' : '') + '" style="width:' + w + '%;"></div>' +
+                    (limitPct >= 0 ? '<div class="limit-line" style="left:' + limitPct + '%;" title="Daily limit"></div>' : '') +
+                    '</div><div class="chart-val">' + val + '</div></div>';
+            }
+            var legend = limit > 0 ? '<div class="muted" style="font-size:12px;margin-top:6px;">Red line = daily limit (' + limit + '). Red bars meet or exceed the limit.</div>' : '';
+            return '<div class="chart">' + rows + '</div>' + legend;
+        }
+
+        var messageGroups = [];
+        function renderTracePanel() {
+            var t = reportData.trace || {};
+            var container = el('panel-trace');
+            var head = '<div class="section" id="section-volume"><h2>Messages and Recipients Volume Overview</h2>' +
+                '<div class="kv"><strong>Total messages</strong> ' + num(t.totalMessages) + '</div>' +
+                '<div class="kv"><strong>Total recipient rows</strong> ' + num(t.totalRecipients) + '</div>' +
+                '<div class="kv"><strong>Unique external recipients</strong> ' + num(t.uniqueExternal) + '</div>' +
+                '<div class="kv"><strong>Peak daily recipients</strong> ' + num(t.maxDaily) + ' (limit ' + num(t.effectiveLimit) + ')</div>' +
+                '<h3>Daily recipient volume</h3>' + renderChart() +
+                (t.truncated ? '<div class="guidance">Message list truncated to the first ' + (t.messages || []).length + ' rows for report size. Aggregates above reflect the full dataset.</div>' : '') +
+                '</div>';
+            container.innerHTML = head +
+                '<div class="section" id="section-messagetrace"><h2>Message Trace</h2>' +
+                '<div class="table-controls">' +
+                '<input type="search" class="search-input" id="mtSearch" placeholder="Search subject, sender, recipient, Message ID, Message Trace ID...">' +
+                '<button class="btn" id="mtCopyExt" type="button">Copy external recipients</button>' +
+                '</div>' +
+                '<div class="muted" style="font-size:12px;margin-bottom:8px;">Messages grouped by subject. Click a subject to expand all recipients and delivery events.</div>' +
+                '<div id="mtGroups"></div></div>';
+            buildMessageGroups();
+            renderMessageGroups('');
+            var s = el('mtSearch');
+            if (s) { s.addEventListener('input', function () { renderMessageGroups(this.value.toLowerCase()); }); }
+            var cbtn = el('mtCopyExt');
+            if (cbtn) { cbtn.addEventListener('click', function () { copyText((reportData.trace.externalList || []).join('\n')); }); }
+        }
+        function buildMessageGroups() {
+            var msgs = (reportData.trace && reportData.trace.messages) || [];
+            var map = {};
+            var order = [];
+            for (var i = 0; i < msgs.length; i++) {
+                var m = msgs[i];
+                var key = m.subject && m.subject.length ? m.subject : '(no subject)';
+                if (!map[key]) {
+                    map[key] = { subject: key, rows: [], senders: {}, external: 0, internal: 0, statuses: {}, first: null, last: null, messageIds: {}, traceIds: {} };
+                    order.push(key);
+                }
+                var g = map[key];
+                g.rows.push(m);
+                if (m.sender) { g.senders[m.sender] = true; }
+                if (m.messageId) { g.messageIds[m.messageId] = true; }
+                if (m.messageTraceId) { g.traceIds[m.messageTraceId] = true; }
+                if (m.isExternal) { g.external++; } else { g.internal++; }
+                g.statuses[m.status] = (g.statuses[m.status] || 0) + 1;
+                if (m.received) {
+                    if (!g.first || m.received < g.first) { g.first = m.received; }
+                    if (!g.last || m.received > g.last) { g.last = m.received; }
+                }
+            }
+            messageGroups = order.map(function (k) { return map[k]; });
+            messageGroups.sort(function (a, b) { return (b.last || '').localeCompare(a.last || ''); });
+        }
+        function renderMessageGroups(filter) {
+            var host = el('mtGroups');
+            if (!host) { return; }
+            var groups = messageGroups;
+            if (filter) {
+                groups = messageGroups.filter(function (g) {
+                    if (g.subject.toLowerCase().indexOf(filter) !== -1) { return true; }
+                    return g.rows.some(function (r) {
+                        return (r.sender || '').toLowerCase().indexOf(filter) !== -1 ||
+                               (r.recipient || '').toLowerCase().indexOf(filter) !== -1 ||
+                               (r.messageId || '').toLowerCase().indexOf(filter) !== -1 ||
+                               (r.messageTraceId || '').toLowerCase().indexOf(filter) !== -1;
+                    });
+                });
+            }
+            if (!groups.length) { host.innerHTML = '<div class="empty">No messages match your search.</div>'; return; }
+            var html = '';
+            for (var i = 0; i < groups.length; i++) {
+                var g = groups[i];
+                var sender = Object.keys(g.senders)[0] || 'Unknown';
+                var statusBadges = '';
+                var sk = Object.keys(g.statuses);
+                for (var s = 0; s < sk.length; s++) {
+                    statusBadges += '<span class="badge badge-' + String(sk[s]).replace(/[^A-Za-z]/g, '') + '">' + esc(sk[s]) + ' ' + g.statuses[sk[s]] + '</span> ';
+                }
+                var dateRange = esc(g.first || '') + (g.last && g.last !== g.first ? ' \u2013 ' + esc(g.last) : '');
+                html += '<div class="mv-card">' +
+                    '<div class="mv-header" onclick="toggleMvBody(\'mvbody-' + i + '\')">' +
+                    '<div class="mv-header-main">' +
+                    '<div class="mv-subject">\u25B8 ' + esc(g.subject) + '</div>' +
+                    '<div class="mv-sub">' + esc(sender) + ' \u2192 ' + g.rows.length + ' recipient(s)</div>' +
+                    '</div>' +
+                    '<div class="mv-header-meta">' +
+                    '<span class="badge badge-ext">External ' + g.external + '</span> ' +
+                    '<span class="badge badge-int">Internal ' + g.internal + '</span> ' +
+                    statusBadges +
+                    '<div class="mv-date">' + dateRange + '</div>' +
+                    '</div></div>';
+                var rows = g.rows.slice().sort(function (a, b) { return (b.received || '').localeCompare(a.received || ''); });
+                var msgIdList = Object.keys(g.messageIds).join(', ') || 'n/a';
+                var traceIdList = Object.keys(g.traceIds).join(', ') || 'n/a';
+                var idSummary = '<div class="mv-ids">' +
+                    '<div class="kv"><strong>Message ID</strong> ' + esc(msgIdList) + '</div>' +
+                    '<div class="kv"><strong>Message Trace ID</strong> ' + esc(traceIdList) + '</div></div>';
+                var body = '<div class="table-scroll"><table><thead><tr><th style="width:26px"></th><th>Received</th><th>Recipient</th><th>Status</th><th>Scope</th><th>From IP</th><th>To IP</th><th>Size</th></tr></thead><tbody>';
+                for (var r = 0; r < rows.length; r++) {
+                    var row = rows[r];
+                    var detId = 'mtd-' + i + '-' + r;
+                    var details = row.traceDetails || [];
+                    body += '<tr class="mt-row" onclick="toggleMtDetail(\'' + detId + '\', this)">' +
+                        '<td><span class="mt-caret">\u25B8</span></td>' +
+                        '<td>' + esc(row.received) + '</td><td>' + esc(row.recipient) + '</td><td>' + statusBadge(row.status) + '</td><td>' +
+                        (row.isExternal ? '<span class="badge badge-ext">External</span>' : '<span class="badge badge-int">Internal</span>') +
+                        '</td><td>' + esc(row.fromIP) + '</td><td>' + esc(row.toIP) + '</td><td>' + esc(row.size) + '</td></tr>';
+                    var detHtml = buildEventFlow(details);
+                    body += '<tr class="mt-detail"><td colspan="8" style="padding:0;"><div class="mt-detail-content" id="' + detId + '">' + detHtml + '</div></td></tr>';
+                }
+                body += '</tbody></table></div>';
+                html += '<div class="mv-body" id="mvbody-' + i + '">' + idSummary + body + '</div></div>';
+            }
+            host.innerHTML = html;
+        }
+        function toggleMvBody(id) {
+            var b = el(id);
+            if (b) { b.classList.toggle('show'); }
+        }
+        function toggleMtDetail(id, row) {
+            var d = el(id);
+            if (!d) { return; }
+            d.classList.toggle('show');
+            if (row) {
+                var caret = row.querySelector('.mt-caret');
+                if (caret) { caret.textContent = d.classList.contains('show') ? '\u25BE' : '\u25B8'; }
+            }
+        }
+        function eventColor(ev) {
+            var e = String(ev || '').toUpperCase();
+            if (e.indexOf('FAIL') !== -1 || e.indexOf('DROP') !== -1 || e.indexOf('BOUNCE') !== -1 || e.indexOf('NDR') !== -1 || e.indexOf('REJECT') !== -1) { return '#e74c3c'; }
+            if (e.indexOf('DELIVER') !== -1 || e.indexOf('SEND') !== -1) { return '#2ecc71'; }
+            if (e.indexOf('RECEIVE') !== -1) { return '#3e97ff'; }
+            if (e.indexOf('DEFER') !== -1 || e.indexOf('RETRY') !== -1 || e.indexOf('QUARANTINE') !== -1 || e.indexOf('SPAM') !== -1) { return '#f39c12'; }
+            if (e.indexOf('SUBMIT') !== -1 || e.indexOf('RESOLVE') !== -1 || e.indexOf('EXPAND') !== -1 || e.indexOf('TRANSFER') !== -1) { return '#64748b'; }
+            return '#7239ea';
+        }
+        function buildEventFlow(details) {
+            if (!details || !details.length) {
+                return '<div class="muted" style="padding:6px;">No delivery detail events available for this recipient.</div>';
+            }
+            var flow = '';
+            for (var i = 0; i < details.length; i++) {
+                var col = eventColor(details[i].event);
+                var name = details[i].event || 'EVENT';
+                flow += '<span class="ef-pill" style="color:' + col + ';background:' + col + '1f;">' + esc(name) + '</span>';
+                if (i < details.length - 1) { flow += '<span class="ef-arrow">\u2192</span>'; }
+            }
+            var items = '';
+            for (var j = 0; j < details.length; j++) {
+                var c = eventColor(details[j].event);
+                items += '<div class="ef-item">' +
+                    '<span class="ef-dot" style="background:' + c + ';"></span>' +
+                    '<div class="ef-event" style="color:' + c + ';">' + esc(details[j].event || 'Event') + '</div>' +
+                    (details[j].detail ? '<div class="ef-detail">' + esc(details[j].detail) + '</div>' : '') +
+                    (details[j].date ? '<div class="ef-date">' + esc(details[j].date) + '</div>' : '') +
+                    '</div>';
+            }
+            return '<div class="ef-wrap">' +
+                '<div class="ef-title"><span>\uD83D\uDCCC</span> Event Flow:</div>' +
+                '<div class="ef-flow">' + flow + '</div>' +
+                '<div class="ef-timeline">' + items + '</div></div>';
+        }
+
+        function renderRestrictedPanel() {
+            var r = reportData.restricted || {};
+            var body;
+            if (r.isBlocked) {
+                body = '<div class="kv"><strong>Blocked sender</strong> ' + esc(r.blockedSender) + '</div>' +
+                    '<div class="kv"><strong>Blocked since</strong> ' + esc(r.timestamp) + '</div>' +
+                    '<div class="kv"><strong>Reason</strong> ' + esc(r.reason) + '</div>' +
+                    '<div class="kv"><strong>Entity (Account)</strong> ' + esc(r.identity) + '</div>' +
+                    '<div class="guidance">To unblock and remove users from Restricted entities page follow the steps in <a href="https://learn.microsoft.com/defender-office-365/outbound-spam-restore-restricted-users" target="_blank" rel="noopener">the article</a>.</div>';
+            } else if (r.lookupFailed) {
+                body = '<div class="guidance">The restricted-entity lookup could not be completed, so restriction status is <strong>unknown</strong>. ' +
+                    'Verify manually with <code>Get-BlockedSenderAddress -SenderAddress ' + esc(reportData.affectedUser) + '</code> in an Exchange Online-only session.' +
+                    (r.error ? ('<br><br>Details: ' + esc(r.error)) : '') + '</div>';
+            } else {
+                body = '<div class="empty">This mailbox is not currently listed as a restricted entity.</div>';
+            }
+            el('panel-restricted').innerHTML = '<div class="section"><h2>Restricted Entity</h2>' + body + '</div>';
+        }
+
+        function renderAlertsPanel() {
+            var a = reportData.alerts || {};
+            var container = el('panel-alerts');
+            if (a.skipped) {
+                container.innerHTML = '<div class="section"><h2>Defender Alerts</h2><div class="empty">Defender / historical search was skipped for this run.</div></div>';
+                return;
+            }
+            container.innerHTML = '<div class="section"><h2>Defender Alerts (last 30 days)</h2>' +
+                '<div class="kv"><strong>Alert count</strong> ' + num(a.count) + '</div>' +
+                '<div id="alertTableHost" style="margin-top:12px;"></div></div>';
+            var cols = [
+                { key: 'creationDate', label: 'Created' },
+                { key: 'alertName', label: 'Alert' },
+                { key: 'severity', label: 'Severity', render: function (r) { var s = String(r.severity || '').replace(/[^A-Za-z]/g, ''); return r.severity ? '<span class="badge badge-' + s + '">' + esc(r.severity) + '</span>' : ''; } },
+                { key: 'category', label: 'Category' },
+                { key: 'status', label: 'Status' },
+                { key: '_details', label: 'View Details', sortable: false, render: function (r) { return '<button class="btn" type="button" onclick="showAlertDetails(\'' + encodeURIComponent(String(r.alertId || '')) + '\')">View details</button>'; } }
+            ];
+            makeTable(el('alertTableHost'), cols, a.list || [], { searchable: true, pageSize: 15 });
+        }
+
+        // Shared detail-modal renderer: builds a label/value table from a fields spec and opens the modal.
+        function openDetailModal(title, fields, obj, extraHtml) {
+            var rowsHtml = '';
+            for (var f = 0; f < fields.length; f++) {
+                var val = obj[fields[f][1]];
+                if (val === null || val === undefined || val === '') { continue; }
+                rowsHtml += '<tr><th style="text-align:left;vertical-align:top;white-space:nowrap;padding:6px 14px 6px 0;color:#2c3e50;">' +
+                    esc(fields[f][0]) + '</th><td style="padding:6px 0;color:#475569;word-break:break-word;">' + esc(val) + '</td></tr>';
+            }
+            var body = '<table class="modal-detail-table" style="width:100%;border-collapse:collapse;font-size:13px;">' + rowsHtml + '</table>';
+            if (extraHtml) { body += extraHtml; }
+            el('alertModalTitle').textContent = title;
+            el('alertModalBody').innerHTML = body;
+            el('alertModal').style.display = 'flex';
+        }
+
+        function showAlertDetails(encId) {
+            var id = decodeURIComponent(encId);
+            var a = reportData.alerts || {};
+            var list = a.list || [];
+            var alert = null;
+            for (var i = 0; i < list.length; i++) { if (String(list[i].alertId) === id) { alert = list[i]; break; } }
+            if (!alert) { return; }
+            // Ordered, human-friendly labels for every captured field.
+            var fields = [
+                ['Alert', 'alertName'], ['Alert ID', 'alertId'], ['Severity', 'severity'],
+                ['Status', 'status'], ['Category', 'category'], ['Classification', 'classification'],
+                ['Determination', 'determination'], ['Created', 'creationDate'],
+                ['First activity', 'firstActivity'], ['Last activity', 'lastActivity'],
+                ['Last update', 'lastUpdate'], ['Resolved', 'resolvedDateTime'],
+                ['Detection source', 'detectionSource'], ['Service source', 'serviceSource'],
+                ['Provider alert ID', 'providerAlertId'], ['Threat family', 'threatFamilyName'],
+                ['Threat display name', 'threatDisplayName'], ['Actor', 'actorDisplayName'],
+                ['Assigned to', 'assignedTo'], ['Incident ID', 'incidentId'],
+                ['User', 'userDisplayName'], ['User principal name', 'userPrincipalName'],
+                ['User account enabled', 'userAccountEnabled'], ['Device', 'deviceName'],
+                ['IP address', 'ipAddress'], ['MITRE techniques', 'mitreTechniques'],
+                ['Evidence count', 'evidenceCount'], ['Evidence summary', 'evidenceSummary'],
+                ['Tenant ID', 'tenantId'], ['Description', 'description'],
+                ['Recommended actions', 'recommendedActions'], ['Comments', 'comments']
+            ];
+            var links = '';
+            if (alert.alertWebUrl) { links += '<a class="btn" href="' + esc(alert.alertWebUrl) + '" target="_blank" rel="noopener">Open alert in portal</a> '; }
+            if (alert.incidentWebUrl) { links += '<a class="btn" href="' + esc(alert.incidentWebUrl) + '" target="_blank" rel="noopener">Open incident</a>'; }
+            openDetailModal(alert.alertName || 'Alert details', fields, alert, links ? '<div style="margin-top:16px;">' + links + '</div>' : '');
+        }
+
+        function closeAlertDetails() { el('alertModal').style.display = 'none'; }
+
+        function renderSendAsPanel() {
+            var a = reportData.sendas || {};
+            var container = el('panel-sendas');
+            if (a.skipped) {
+                container.innerHTML = '<div class="section"><h2>SendAs / SendOnBehalf Logs</h2><div class="empty">Unified audit log collection was skipped for this run.</div></div>';
+                return;
+            }
+            if (a.error) {
+                container.innerHTML = '<div class="section"><h2>SendAs / SendOnBehalf Logs</h2><div class="guidance">' + esc(a.error) + '</div></div>';
+                return;
+            }
+            container.innerHTML = '<div class="section"><h2>SendAs / SendOnBehalf Logs (last ' + esc(reportData.lookbackDays) + ' days)</h2>' +
+                '<div class="kv"><strong>Event count</strong> ' + num(a.count) + '</div>' +
+                '<div id="sendAsTableHost" style="margin-top:12px;"></div></div>';
+            var list = (a.list || []).map(function (x, i) { x._idx = i; return x; });
+            var cols = [
+                { key: 'creationTime', label: 'Created' },
+                { key: 'operation', label: 'Operation' },
+                { key: 'userId', label: 'Performed by' },
+                { key: 'sendAsUserSmtp', label: 'SendAs SMTP' },
+                { key: 'sendOnBehalfOfUserSmtp', label: 'SendOnBehalf SMTP' },
+                { key: '_details', label: 'View Details', sortable: false, render: function (r) { return '<button class="btn" type="button" onclick="showSendAsDetails(' + r._idx + ')">View details</button>'; } }
+            ];
+            makeTable(el('sendAsTableHost'), cols, list, { searchable: true, pageSize: 15 });
+        }
+
+        function showSendAsDetails(idx) {
+            var list = (reportData.sendas && reportData.sendas.list) || [];
+            var e = list[idx];
+            if (!e) { return; }
+            var fields = [
+                ['Created', 'creationTime'], ['Operation', 'operation'], ['Performed by (UserId)', 'userId'],
+                ['SendAs SMTP', 'sendAsUserSmtp'], ['SendOnBehalf SMTP', 'sendOnBehalfOfUserSmtp'],
+                ['Mailbox owner', 'mailboxOwnerUpn'], ['Client IP', 'clientIP'], ['Subject', 'subject'],
+                ['Internet message ID', 'internetMessageId'],
+                ['Result', 'resultStatus'], ['Workload', 'workload']
+            ];
+            openDetailModal((e.operation || 'SendAs') + ' event', fields, e);
+        }
+
+        // ---------- Mailbox Security Insights (donut + cards) ----------
+        var securitySignalsList = [];
+        var quarantineMessageList = [];
+        var inboxRuleList = [];
+        var delegationList = [];
+        var freeWebmailList = [];
+        function indicatorCard(ind, idx) {
+            var met = ind.met;
+            var color = met ? '#e74c3c' : '#27ae60';
+            var badge = met ? 'YES' : 'NO';
+            return '<div class="ind-card clickable" style="--indicator-color:' + color + ';" onclick="showIndicatorDetails(' + idx + ')">' +
+                '<div class="ind-head"><span class="ind-name">' + esc(ind.name) + '</span>' +
+                '<span class="ind-badge" style="background:' + color + ';">' + badge + '</span></div>' +
+                '<div class="ind-progress"><div class="ind-bar" style="background:' + color + ';"></div></div>' +
+                '<div class="ind-click">&#128269; Click to view details</div></div>';
+        }
+        function showIndicatorDetails(idx) {
+            var ind = securitySignalsList[idx];
+            if (!ind) { return; }
+            var met = ind.met;
+            var color = met ? '#e74c3c' : '#27ae60';
+            var badgeText = met ? 'YES - ATTENTION NEEDED' : 'NO';
+            var body = '<div style="background:' + color + '15;border:1px solid ' + color + ';border-left:4px solid ' + color + ';border-radius:8px;padding:16px;margin-bottom:18px;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;">' +
+                '<h3 style="margin:0;font-size:16px;color:#2c3e50;">Mailbox Security Insight Assessment</h3>' +
+                '<span class="ind-badge" style="background:' + color + ';padding:6px 16px;">' + badgeText + '</span></div>' +
+                '<div style="display:grid;grid-template-columns:1fr;gap:12px;">' +
+                '<div style="background:#fff;border-radius:6px;padding:12px;box-shadow:0 2px 4px rgba(0,0,0,.1);"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#64748b;margin-bottom:4px;">Attention Needed</div><div style="font-size:22px;font-weight:700;color:' + color + ';">' + (met ? 'Yes' : 'No') + '</div></div>' +
+                '</div></div>' +
+                '<div class="kv"><strong>Condition</strong> ' + esc(ind.condition) + '</div>' +
+                '<div class="kv"><strong>Detail</strong> ' + esc(ind.detail) + '</div>';
+            var messages = ind.messages || [];
+            if (ind.detailType === 'quarantineMessages' && messages.length) {
+                quarantineMessageList = messages;
+                var messageRows = '';
+                for (var i = 0; i < messages.length; i++) {
+                    var message = messages[i];
+                    messageRows += '<tr><td>' + esc(message.messageId || '') + '</td>' +
+                        '<td><button class="btn" type="button" onclick="showQuarantineMessageDetails(' + i + ')">View details</button></td></tr>';
+                }
+                body += '<h3>Quarantined messages</h3><div class="table-scroll"><table><thead><tr>' +
+                    '<th>MessageId</th><th>View Details</th>' +
+                    '</tr></thead><tbody>' + messageRows + '</tbody></table></div>';
+            }
+            if (ind.detailType === 'inboxRules') {
+                var rules = (reportData.health && reportData.health.securitySignalsRules) || [];
+                if (rules.length) {
+                    inboxRuleList = rules;
+                    var ruleRows = '';
+                    for (var ri = 0; ri < rules.length; ri++) {
+                        ruleRows += '<tr><td>' + esc(rules[ri].name || '') + '</td>' +
+                            '<td><button class="btn" type="button" onclick="showInboxRuleDetails(' + ri + ')">View details</button></td></tr>';
+                    }
+                    body += '<h3>Inbox rules</h3><div class="table-scroll"><table><thead><tr>' +
+                        '<th>Name</th><th>View Details</th>' +
+                        '</tr></thead><tbody>' + ruleRows + '</tbody></table></div>';
+                }
+            }
+            if (ind.detailType === 'externalForwarding') {
+                var h = reportData.health || {};
+                if (h.externalForward) {
+                    var fwdRows = '<tr><td>' + esc(h.forwardingAddress || '') + '</td>' +
+                        '<td><button class="btn" type="button" onclick="showExternalForwardingDetails()">View details</button></td></tr>';
+                    body += '<h3>External forwarding</h3><div class="table-scroll"><table><thead><tr>' +
+                        '<th>External forwarding</th><th>View Details</th>' +
+                        '</tr></thead><tbody>' + fwdRows + '</tbody></table></div>';
+                }
+            }
+            if (ind.detailType === 'delegation') {
+                var delegs = (reportData.health && reportData.health.delegationEntries) || [];
+                if (delegs.length) {
+                    delegationList = delegs;
+                    var delegRows = '';
+                    for (var di = 0; di < delegs.length; di++) {
+                        delegRows += '<tr><td>' + esc(delegs[di].user || '') + '</td>' +
+                            '<td><button class="btn" type="button" onclick="showDelegationDetails(' + di + ')">View details</button></td></tr>';
+                    }
+                    body += '<h3>Delegation or SendAs permissions</h3><div class="table-scroll"><table><thead><tr>' +
+                        '<th>Delegation</th><th>View Details</th>' +
+                        '</tr></thead><tbody>' + delegRows + '</tbody></table></div>';
+                }
+            }
+            if (ind.detailType === 'defenderAlerts') {
+                var alertsList = (reportData.alerts && reportData.alerts.list) || [];
+                if (alertsList.length) {
+                    var alertRows = '';
+                    for (var ai = 0; ai < alertsList.length; ai++) {
+                        alertRows += '<tr><td>' + esc(alertsList[ai].alertName || '') + '</td>' +
+                            '<td><button class="btn" type="button" onclick="showAlertDetails(\'' + encodeURIComponent(String(alertsList[ai].alertId || '')) + '\')">View details</button></td></tr>';
+                    }
+                    body += '<h3>Active Defender alerts</h3><div class="table-scroll"><table><thead><tr>' +
+                        '<th>Alert name</th><th>View Details</th>' +
+                        '</tr></thead><tbody>' + alertRows + '</tbody></table></div>';
+                }
+            }
+            if (ind.detailType === 'freeWebmail') {
+                var fwEntries = ind.entries || [];
+                if (fwEntries.length) {
+                    freeWebmailList = fwEntries;
+                    var fwRows = '';
+                    for (var fwi = 0; fwi < fwEntries.length; fwi++) {
+                        fwRows += '<tr><td>' + esc(fwEntries[fwi].target || '') + '</td>' +
+                            '<td><button class="btn" type="button" onclick="showFreeWebmailDetails(' + fwi + ')">View details</button></td></tr>';
+                    }
+                    body += '<h3>Auto-forward to free webmail</h3><div class="table-scroll"><table><thead><tr>' +
+                        '<th>Auto-forward</th><th>View Details</th>' +
+                        '</tr></thead><tbody>' + fwRows + '</tbody></table></div>';
+                }
+            }
+            if (ind.detailType === 'subjectSimilarity') {
+                var subjEntries = ind.entries || [];
+                if (subjEntries.length) {
+                    subjectSimilarityList = subjEntries;
+                    var subjRows = '';
+                    for (var sui = 0; sui < subjEntries.length; sui++) {
+                        subjRows += '<tr><td>' + esc(subjEntries[sui].subject || '') + '</td>' +
+                            '<td>' + esc(subjEntries[sui].percentage) + '%</td>' +
+                            '<td>' + esc(subjEntries[sui].messageCount) + '</td>' +
+                            '<td>' + esc(subjEntries[sui].sentDateTime || '') + '</td></tr>';
+                    }
+                    body += '<h3>High similarity of message subjects</h3><div class="table-scroll"><table><thead><tr>' +
+                        '<th>Message subject</th><th>Percentage of messages</th><th>Message count</th><th>Message sent date and time</th>' +
+                        '</tr></thead><tbody>' + subjRows + '</tbody></table></div>';
+                }
+            }
+            if (ind.detailType === 'auditEnabled') {
+                var auditEntries = ind.entries || [];
+                if (auditEntries.length) {
+                    var auditRows = '';
+                    for (var adi = 0; adi < auditEntries.length; adi++) {
+                        auditRows += '<tr><td>' + esc(auditEntries[adi].name || '') + '</td>' +
+                            '<td>' + esc(auditEntries[adi].value || '') + '</td></tr>';
+                    }
+                    body += '<h3>Mailbox audit properties</h3><div class="table-scroll"><table><thead><tr>' +
+                        '<th>Property</th><th>Value</th>' +
+                        '</tr></thead><tbody>' + auditRows + '</tbody></table></div>';
+                }
+            }
+            el('alertModalTitle').textContent = ind.name;
+            el('alertModalBody').innerHTML = body;
+            el('alertModal').style.display = 'flex';
+        }
+        function showFreeWebmailDetails(idx) {
+            var e = freeWebmailList[idx];
+            if (!e) { return; }
+            var fields = [
+                ['Auto-forward target', 'target'], ['Source', 'source'], ['Matched webmail domain', 'matchedDomain']
+            ];
+            openDetailModal('Auto-forward to free webmail details', fields, e);
+        }
+        function showDelegationDetails(idx) {
+            var d = delegationList[idx];
+            if (!d) { return; }
+            var fields = [
+                ['Permission type', 'permissionType'], ['User', 'user'], ['Access rights', 'accessRights'],
+                ['Access control type', 'accessControlType'], ['Deny', 'deny'], ['Inheritance type', 'inheritanceType']
+            ];
+            openDetailModal('Delegation / SendAs details', fields, d);
+        }
+        function showExternalForwardingDetails() {
+            var h = reportData.health || {};
+            var fields = [
+                ['Forwarding address', 'forwardingAddress'], ['Deliver and forward', 'deliverAndForward']
+            ];
+            openDetailModal('External forwarding details', fields, h);
+        }
+        function showInboxRuleDetails(idx) {
+            var rule = inboxRuleList[idx];
+            if (!rule) { return; }
+            var fields = [
+                ['Name', 'name'], ['Enabled', 'enabled'], ['Forward to', 'forwardTo'],
+                ['Redirect to', 'redirectTo'], ['Delete message', 'deleteMessage'], ['Description', 'description'],
+                ['Priority', 'priority'], ['MailboxOwnerId', 'mailboxOwnerId']
+            ];
+            openDetailModal('Inbox rule details', fields, rule);
+        }
+        function showQuarantineMessageDetails(idx) {
+            var m = quarantineMessageList[idx];
+            if (!m) { return; }
+            var fields = [
+                ['MessageId', 'messageId'], ['SenderAddress', 'senderAddress'], ['RecipientAddress', 'recipientAddress'],
+                ['Subject', 'subject'], ['Type', 'type'], ['EntityType', 'entityType'],
+                ['PolicyType', 'policyType'], ['PolicyName', 'policyName'], ['QuarantineTypes', 'quarantineTypes'],
+                ['ReleaseStatus', 'releaseStatus'], ['ReceivedTime', 'receivedTime'], ['SystemReleased', 'systemReleased'],
+                ['Expires', 'expires'], ['Reported', 'reported']
+            ];
+            openDetailModal('Quarantined message details', fields, m);
+        }
+        function renderIndicatorDonut(total, attentionNeeded) {
+            var pct = total > 0 ? Math.round(attentionNeeded / total * 100) : 0;
+            var circ = 339.29;
+            var offset = circ * (1 - pct / 100);
+            var color = attentionNeeded > 0 ? '#e74c3c' : '#27ae60';
+            return '<svg width="130" height="130" viewBox="0 0 130 130">' +
+                '<circle cx="65" cy="65" r="54" fill="none" stroke="#eef0f4" stroke-width="12"></circle>' +
+                '<circle cx="65" cy="65" r="54" fill="none" stroke="' + color + '" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + circ + '" stroke-dashoffset="' + offset + '" transform="rotate(-90 65 65)"></circle>' +
+                '<text x="65" y="62" text-anchor="middle" font-size="26" font-weight="700" fill="#2c3e50">' + pct + '%</text>' +
+                '<text x="65" y="82" text-anchor="middle" font-size="10" fill="#64748b">attention needed</text></svg>';
+        }
+        function renderSecuritySignals() {
+            var v = reportData.verdict || {};
+            var indicators = v.securitySignals || [];
+            var attentionNeeded = num(v.attentionNeededCount);
+            var noAttention = num(v.noAttentionCount);
+            var total = attentionNeeded + noAttention;
+            var sorted = indicators.slice().sort(function (a, b) { return (b.met ? 1 : 0) - (a.met ? 1 : 0); });
+            securitySignalsList = sorted;
+            var cards = '';
+            for (var ci = 0; ci < sorted.length; ci++) { cards += indicatorCard(sorted[ci], ci); }
+            var indGrid = indicators.length ? '<div class="ind-grid">' + cards + '</div>' : '<div class="empty">No insights evaluated.</div>';
+            var overview = '<div class="si-overview">' + renderIndicatorDonut(total, attentionNeeded) +
+                '<div class="si-overview-text"><div class="si-title">Mailbox Security Insights</div>' +
+                '<div class="si-sub">' + noAttention + ' of ' + total + ' insights need no attention</div>' +
+                '<div class="si-badges"><span class="count-badge passed">No Attention: ' + noAttention + '</span>' +
+                '<span class="count-badge failed">Attention Needed: ' + attentionNeeded + '</span>' +
+                '<span class="count-badge total">Total: ' + total + '</span></div></div></div>';
+            return '<div class="section"><h2>Mailbox Security Insights</h2>' + overview + indGrid + '</div>';
+        }
+
+        // ---------- Verdict summary ----------
+        function buildVerdictSummary() {
+            var v = reportData.verdict || {}, t = reportData.trace || {}, p = reportData.policy || {}, r = reportData.restricted || {};
+            var lines = [];
+            lines.push('SENDER RESTRICTION ANALYZER VERDICT SUMMARY');
+            lines.push('Affected user: ' + reportData.affectedUser + ' (' + reportData.displayName + ')');
+            lines.push('Generated: ' + reportData.reportTimestamp);
+            lines.push('Verdict: ' + v.classification + (v.blockType ? ' (' + v.blockType + ')' : ''));
+            lines.push('Restriction: ' + (r.isBlocked ? ('Blocked since ' + r.timestamp + ' \u2014 ' + r.reason) : 'Not restricted'));
+            lines.push('Policy: ' + p.name + ' | daily=' + p.dailyLimit + ' extHourly=' + p.externalHourlyLimit + ' intHourly=' + p.internalHourlyLimit + ' action=' + p.action);
+            lines.push('Volume: peakDaily=' + t.maxDaily + ' effectiveLimit=' + t.effectiveLimit + ' totalMsgs=' + t.totalMessages + ' uniqueExternal=' + t.uniqueExternal + ' peak60min=' + t.peakRolling60);
+            return lines.join('\n');
+        }
+
+        // ---------- Init ----------
+        function init() {
+            renderHeader();
+            renderKpis();
+            renderTabs();
+            renderVerdictPanel();
+            renderTracePanel();
+            renderRestrictedPanel();
+            renderPolicyPanel();
+            renderAlertsPanel();
+            renderSendAsPanel();
+            el('panel-indicators').innerHTML = renderSecuritySignals();
+            el('panel-recommendations').innerHTML = renderRecommendations();
+            el('copyVerdictSummary').addEventListener('click', function () { copyText(buildVerdictSummary()); });
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeAlertDetails(); } });
+            document.title = 'Sender Restriction Analysis - ' + reportData.affectedUser;
+        }
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+    </script>
+    <div id="alertModal" class="modal-overlay" onclick="if(event.target===this)closeAlertDetails()">
+        <div class="modal-box" role="dialog" aria-modal="true">
+            <div class="modal-head">
+                <h3 id="alertModalTitle">Alert details</h3>
+                <button type="button" class="modal-close" onclick="closeAlertDetails()" aria-label="Close">&times;</button>
+            </div>
+            <div id="alertModalBody" class="modal-body"></div>
+        </div>
+    </div>
+</body>
+</html>
